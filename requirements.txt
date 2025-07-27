@@ -1,0 +1,4 @@
+aiohttp==3.12.14
+folium==0.20.0
+ortools==9.14.6206
+python-dotenv==1.1.1

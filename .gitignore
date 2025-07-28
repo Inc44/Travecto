@@ -1,4 +1,7 @@
 **/__pycache__/**/*
+.env
 build/**/*
 dist/**/*
+geocode_cache.json
+routes/**/*
 travecto.egg-info/**/*

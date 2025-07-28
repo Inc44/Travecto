@@ -20,12 +20,12 @@ def strip_accents(unistr: str) -> str:
 
 def load_cache(path: Path) -> Dict[str, Tuple[float, float]]:
 	if path.exists():
-		return json.loads(path.read_text(encoding="utf-8"))
+		return json.loads(path.read_text())
 	return {}
 
 
 def save_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
-	path.write_text(json.dumps(cache, ensure_ascii=False, indent="\t", sort_keys=True))
+	path.write_text(json.dumps(cache, indent="\t", sort_keys=True))
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)

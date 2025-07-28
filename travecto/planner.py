@@ -1,6 +1,7 @@
 from __future__ import annotations
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import logging
 import math
 
@@ -8,6 +9,17 @@ from .geocoder import geocode, load_cache, save_cache
 from .solver import tsp
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class RouteInfo:
+	city_name: str
+	places: List[str]
+	coords: Dict[str, Tuple[float, float]]
+	speed_kmh: float
+	day_idx: Optional[int]
+	route: List[int]
+	header: str
 
 
 def haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> int:
@@ -73,30 +85,33 @@ def print_route(
 	route: List[int],
 	speed_kmh: float,
 ) -> None:
-	total = sum(distance_matrix[route[i]][route[i + 1]] for i in range(len(route) - 1))
+	total_m = sum(
+		distance_matrix[route[i]][route[i + 1]] for i in range(len(route) - 1)
+	)
 	print(header)
 	for idx in route:
 		print(places[idx])
-	print(f"{total / 1000:.0f} km | {avg_time_minutes(total, speed_kmh):.0f} min")
+	print(f"{total_m / 1000:.1f} km | {avg_time_minutes(total_m, speed_kmh):.0f} min")
 
 
 def solve_route(
 	places: List[str],
 	coords: Dict[str, Tuple[float, float]],
-	start_idx: int,
+	home: str,
 	workers: int,
 	time_limit_s: int,
 ) -> List[int]:
+	start_idx = places.index(home)
 	distance_matrix = haversine_distance_matrix([coords[p] for p in places])
 	return tsp(distance_matrix, start_idx, workers, time_limit_s)
 
 
-def plan_route(
+def compute_routes(
 	city_name: str,
 	city_cfg: Dict[str, Any],
 	workers: int,
 	settings: Dict[str, Any],
-) -> None:
+) -> List[RouteInfo]:
 	cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
 	cache = load_cache(cache_path)
 	home = city_cfg["home"]
@@ -114,44 +129,58 @@ def plan_route(
 	)
 	save_cache(cache, cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh", avg_speed_kmh(settings))
+	time_limit = settings.get("tsp_time_limit_s", 6)
 	mandatory = city_cfg.get("mandatory_by_day", {})
+	routes: List[RouteInfo] = []
 	if mandatory:
 		days = assign_days(coords, mandatory, home)
 		for day_idx in sorted(days):
 			places = list(dict.fromkeys(days[day_idx]))
 			if home not in places:
 				places.insert(0, home)
-			start_idx = places.index(home)
-			route = solve_route(
-				places,
-				coords,
-				start_idx,
-				workers,
-				settings.get("tsp_time_limit_s", 6),
+			route = solve_route(places, coords, home, workers, time_limit)
+			header = (
+				f"\n{city_name.upper()} – DAY {int(day_idx) + 1}\nMust: "
+				+ ", ".join(mandatory[day_idx])
 			)
-			header = f"\n{city_name.upper()} – DAY {day_idx + 1}\nMust: " + ", ".join(
-				mandatory[day_idx]
-			)
-			print_route(
-				header,
-				places,
-				haversine_distance_matrix([coords[p] for p in places]),
-				route,
-				speed_kmh,
+			routes.append(
+				RouteInfo(
+					city_name,
+					places,
+					coords,
+					speed_kmh,
+					day_idx,
+					route,
+					header,
+				)
 			)
 	else:
-		start_idx = places.index(home)
-		route = solve_route(
-			places,
-			coords,
-			start_idx,
-			workers,
-			settings.get("tsp_time_limit_s", 6),
+		route = solve_route(places, coords, home, workers, time_limit)
+		header = f"\n{city_name.upper()}"
+		routes.append(
+			RouteInfo(
+				city_name,
+				places,
+				coords,
+				speed_kmh,
+				None,
+				route,
+				header,
+			)
+		)
+	return routes
+
+
+def plan_route(
+	city_name: str,
+	city_cfg: Dict[str, Any],
+	workers: int,
+	settings: Dict[str, Any],
+) -> None:
+	for info in compute_routes(city_name, city_cfg, workers, settings):
+		distance_matrix = haversine_distance_matrix(
+			[info.coords[p] for p in info.places]
 		)
 		print_route(
-			f"\n{city_name.upper()}",
-			places,
-			haversine_distance_matrix([coords[p] for p in places]),
-			route,
-			speed_kmh,
+			info.header, info.places, distance_matrix, info.route, info.speed_kmh
 		)

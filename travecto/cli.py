@@ -1,6 +1,11 @@
 from __future__ import annotations
 import argparse
 import logging
+import os
+
+from .config_loader import load_config
+from .planner import plan_route
+from .visualizer import visualize_route
 
 
 def main() -> None:
@@ -39,6 +44,17 @@ def main() -> None:
 	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
+	google_maps_api_key = os.getenv("GOOGLE_API_KEY")
+	if not google_maps_api_key:
+		raise RuntimeError("GOOGLE_API_KEY environment variable is required")
+	config = load_config(args.input)
+	settings = config.get("settings", {})
+	cities = config.get("cities", {})
+	for city_name, city_cfg in cities.items():
+		if args.maps:
+			visualize_route(city_name, city_cfg, args.workers, settings)
+		else:
+			plan_route(city_name, city_cfg, args.workers, settings)
 
 
 if __name__ == "__main__":

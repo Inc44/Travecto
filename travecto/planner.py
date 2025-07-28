@@ -1,9 +1,8 @@
 from __future__ import annotations
-
-import logging
-import math
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+import logging
+import math
 
 from .geocoder import geocode, load_cache, save_cache
 from .solver import tsp
@@ -86,10 +85,10 @@ def solve_route(
 	coords: Dict[str, Tuple[float, float]],
 	start_idx: int,
 	workers: int,
-	time_limit: int,
+	time_limit_s: int,
 ) -> List[int]:
 	distance_matrix = haversine_distance_matrix([coords[p] for p in places])
-	return tsp(distance_matrix, start_idx, workers, time_limit)
+	return tsp(distance_matrix, start_idx, workers, time_limit_s)
 
 
 def plan_route(
@@ -128,7 +127,7 @@ def plan_route(
 				coords,
 				start_idx,
 				workers,
-				settings.get("tsp_time_limit", 6),
+				settings.get("tsp_time_limit_s", 6),
 			)
 			header = f"\n{city_name.upper()} – DAY {day_idx + 1}\nMust: " + ", ".join(
 				mandatory[day_idx]
@@ -147,7 +146,7 @@ def plan_route(
 			coords,
 			start_idx,
 			workers,
-			settings.get("tsp_time_limit", 6),
+			settings.get("tsp_time_limit_s", 6),
 		)
 		print_route(
 			f"\n{city_name.upper()}",

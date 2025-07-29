@@ -124,12 +124,12 @@ def compute_routes(
 		city_cfg.get("alt_addresses", {}),
 		cache,
 		settings.get("rate_limit_qps", 50),
-		settings.get("http_timeout_s", 10),
+		settings.get("http_timeout_s", 6),
 		settings.get("probe_delay", 0.02),
 	)
 	save_cache(cache, cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh", avg_speed_kmh(settings))
-	time_limit = settings.get("tsp_time_limit_s", 6)
+	time_limit_s = settings.get("tsp_time_limit_s", 6)
 	mandatory = city_cfg.get("mandatory_by_day", {})
 	routes: List[RouteInfo] = []
 	if mandatory:
@@ -138,7 +138,7 @@ def compute_routes(
 			places = list(dict.fromkeys(days[day_idx]))
 			if home not in places:
 				places.insert(0, home)
-			route = solve_route(places, coords, home, workers, time_limit)
+			route = solve_route(places, coords, home, workers, time_limit_s)
 			header = (
 				f"\n{city_name.upper()} – DAY {int(day_idx) + 1}\nMust: "
 				+ ", ".join(mandatory[day_idx])
@@ -155,7 +155,7 @@ def compute_routes(
 				)
 			)
 	else:
-		route = solve_route(places, coords, home, workers, time_limit)
+		route = solve_route(places, coords, home, workers, time_limit_s)
 		header = f"\n{city_name.upper()}"
 		routes.append(
 			RouteInfo(

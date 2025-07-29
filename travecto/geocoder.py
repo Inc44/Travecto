@@ -76,7 +76,7 @@ async def geocode_google_maps_location(
 				return name, coords
 			except Exception as e:
 				log.debug("Probe '%s' failed: %s", probe, e)
-		await asyncio.sleep(probe_delay_s)
+				await asyncio.sleep(probe_delay_s)
 	raise RuntimeError(f"Geocoding failed for {name}")
 
 
@@ -119,9 +119,9 @@ def geocode(
 	timeout_s: int,
 	probe_delay_s: float,
 ) -> Dict[str, Tuple[float, float]]:
-	google_maps_api_key = os.getenv("GOOGLE_API_KEY")
+	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
-		raise RuntimeError("GOOGLE_API_KEY environment variable missing")
+		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
 	coro = geocode_google_maps_locations(
 		places,
 		city,

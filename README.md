@@ -36,15 +36,13 @@ Optimizes travel routes using [Google Maps Geocoding API](https://developers.goo
 ## 🚀 Installation
 
 ```bash
-conda create -n travecto python=3.9 -y
+conda create -n travecto python=3.9 -y # up to 3.13
 conda activate travecto
 git clone https://github.com/Inc44/Travecto.git
 cd Travecto
-pip install -r requirements.txt
 ```
 
 _Run the program using_ `python -m travecto.cli` _(or_ `python -OO travecto/cli.py`_)._
-
 
 ## 🧾 Configuration
 
@@ -69,13 +67,17 @@ echo %GOOGLE_MAPS_API_KEY%
 ## 📖 Usage Examples
 
 ### Basic Route Planning
+
 Calculate optimal routes for all configured cities:
+
 ```bash
 python -m travecto.cli
 ```
 
 ### Generate Interactive Maps
+
 Create HTML maps showing optimized routes:
+
 ```bash
 python -m travecto.cli --maps
 ```
@@ -85,7 +87,7 @@ python -m travecto.cli --maps
 Use custom configuration file:
 
 ```bash
-python -m travecto.cli --input my_config.toml
+python -m travecto.cli --input config.toml
 ```
 
 ### Custom Output Directory
@@ -93,17 +95,17 @@ python -m travecto.cli --input my_config.toml
 Save maps to specific directory:
 
 ```bash
-python -m travecto.cli --maps --output my_routes
+python -m travecto.cli --maps --output html
 ```
 
 ## 🎨 Command-Line Arguments
 
-| Argument               | Description                                                     |
-|------------------------|-----------------------------------------------------------------|
-| `-i, --input <path>`   | Path to the TOML configuration file. Default: `config.toml`.   |
-| `-o, --output <path>`  | Directory for map files. Default: `routes`.                    |
-| `--maps`               | Generate interactive HTML maps for visualization.              |
-| `--workers <n>`        | Number of OR-Tools search workers. Default: 32.               |
+| Argument               | Description                                                                        |
+|------------------------|------------------------------------------------------------------------------------|
+| `-i, --input <path>`   | Path to the TOML configuration file. Default: `demo.toml`.                         |
+| `-o, --output <path>`  | Directory for map files. Default: `routes`.                                        |
+| `--maps`               | Generate interactive HTML maps for visualization.                                  |
+| `--workers <n>`        | Number of OR-Tools search workers. Default: 32.                                    |
 | `--loglevel <level>`   | Set logging level (NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL). Default: ERROR. |
 
 ## 🎯 Motivation

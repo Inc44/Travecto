@@ -1,5 +1,6 @@
 from __future__ import annotations
 import argparse
+import logging
 import os
 
 from .config_loader import load_config
@@ -14,8 +15,8 @@ def main() -> None:
 	arg_parser.add_argument(
 		"-i",
 		"--input",
-		default="config.toml",
-		help="Path to the TOML configuration file. Default: `config.toml`.",
+		default="demo.toml",
+		help="Path to the TOML configuration file. Default: `demo.toml`.",
 	)
 	arg_parser.add_argument(
 		"-o",
@@ -42,9 +43,10 @@ def main() -> None:
 		help="Set the logging level. Default: ERROR.",
 	)
 	args = arg_parser.parse_args()
-	google_maps_api_key = os.getenv("GOOGLE_API_KEY")
+	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
+	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
-		raise RuntimeError("GOOGLE_API_KEY environment variable is required")
+		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable is required")
 	config = load_config(args.input)
 	settings = config.get("settings", {})
 	cities = config.get("cities", {})

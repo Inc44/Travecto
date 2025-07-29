@@ -1,0 +1,52 @@
+[settings]
+# Transportation timing weights
+metro_time = 0.5
+walking_time = 0.5
+
+# Transportation speeds in km/h
+metro_speed = 30
+walking_speed = 5
+
+# Geocoding and API settings
+cache_file = "geocode_cache.json"
+rate_limit_qps = 50
+http_timeout_s = 6
+probe_delay = 0.02
+
+# TSP solver settings
+tsp_time_limit_s = 6
+
+# Optional Thunderforest API key for transport layer
+thunderforest_api_key = ""
+
+[paris]
+home = "Tour Montparnasse 75015"
+avg_speed_kmh = 20
+places = [
+	"Arc de Triomphe 75008",
+	"Basilique du Sacré-Cœur de Montmartre 75018",
+	"Cathédrale Notre-Dame de Paris 75004",
+	"Champs-Élysées 75008",
+	"Château de Versailles 78000",
+	"Grande Arche de la Défense 92800",
+	"Hôtel des Invalides 75007",
+	"Jardin du Luxembourg 75006",
+	"Montmartre 75018",
+	"Musée du Louvre 75001",
+	"Obélisque de Louxor 75008",
+	"Palais Garnier 75009",
+	"Panthéon 75005",
+	"Place de la Concorde 75008",
+	"Sainte-Chapelle 75001",
+	"The Centre Pompidou 75004",
+	"Tour Eiffel 75007",
+	"Tour Montparnasse 75015",
+]
+
+[paris.mandatory_by_day]
+0 = ["Tour Eiffel 75007", "Montmartre 75018"]
+1 = ["Musée du Louvre 75001"]
+2 = ["Château de Versailles 78000"]
+
+[paris.alt_addresses]
+"Obélisque de Louxor" = "73 Pl. de la Concorde 75008 Paris"

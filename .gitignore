@@ -1,6 +1,7 @@
 **/__pycache__/**/*
 .env
 build/**/*
+config.toml
 dist/**/*
 geocode_cache.json
 routes/**/*

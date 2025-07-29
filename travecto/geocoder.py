@@ -7,8 +7,8 @@ import logging
 import os
 import unicodedata
 
-import aiohttp
 from tenacity import retry, stop_after_attempt, wait_exponential
+import aiohttp
 
 log = logging.getLogger(__name__)
 

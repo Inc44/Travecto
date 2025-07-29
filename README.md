@@ -40,6 +40,7 @@ conda create -n travecto python=3.9 -y # up to 3.13
 conda activate travecto
 git clone https://github.com/Inc44/Travecto.git
 cd Travecto
+pip install -r requirements.txt
 ```
 
 _Run the program using_ `python -m travecto.cli` _(or_ `python -OO travecto/cli.py`_)._

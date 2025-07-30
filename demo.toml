@@ -44,9 +44,9 @@ places = [
 ]
 
 [paris.mandatory_by_day]
-0 = ["Tour Eiffel 75007", "Montmartre 75018"]
-1 = ["Musée du Louvre 75001"]
-2 = ["Château de Versailles 78000"]
+1 = ["Tour Eiffel 75007", "Montmartre 75018"]
+2 = ["Musée du Louvre 75001"]
+3 = ["Château de Versailles 78000"]
 
 [paris.alt_addresses]
 "Obélisque de Louxor" = "73 Pl. de la Concorde 75008 Paris"

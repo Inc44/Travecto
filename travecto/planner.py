@@ -18,7 +18,7 @@ class RouteInfo:
 	places: List[str]
 	coords: Dict[str, Tuple[float, float]]
 	speed_kmh: float
-	day_idx: Optional[int]
+	day_idx: Optional[str]
 	route: List[int]
 	header: str
 	distance_matrix: List[List[int]]
@@ -56,14 +56,15 @@ def assign_days(
 	coords: Dict[str, Tuple[float, float]],
 	mandatory: Dict[str, List[str]],
 	home: str,
-) -> Dict[int, List[str]]:
-	days: Dict[str, List[str]] = {d: list(lst) for d, lst in mandatory.items()}
+) -> Dict[str, List[str]]:
+	days: Dict[str, List[str]] = {str(d): list(lst) for d, lst in mandatory.items()}
 	anchors = {d: centroid([coords[p] for p in lst]) for d, lst in days.items()}
 	for place in coords:
 		if place == home or any(place in grp for grp in days.values()):
 			continue
 		nearest = min(
-			anchors, key=lambda d: haversine_distance(coords[place], anchors[d])
+			anchors,
+			key=lambda d: haversine_distance(coords[place], anchors[d]),
 		)
 		days[nearest].append(place)
 	return days
@@ -143,20 +144,19 @@ def compute_routes(
 	if mandatory:
 		days = assign_days(coords, mandatory, home)
 		for day_idx in sorted(days):
-			places = list(dict.fromkeys(days[day_idx]))
-			if home not in places:
-				places.insert(0, home)
-			distance_matrix = get_distance_matrix(places, coords, mode, settings)
-			route = tsp(distance_matrix, places.index(home), workers, time_limit_s)
-			try:
-				day_name = f"{int(day_idx) + 1}"
-			except:
-				day_name = day_idx
-			header = f"\n{city_name.capitalize()} - Day {day_name}\nMust: {', '.join(mandatory[day_idx])}"
+			day_places = list(dict.fromkeys(days[day_idx]))
+			if home not in day_places:
+				day_places.insert(0, home)
+			distance_matrix = get_distance_matrix(day_places, coords, mode, settings)
+			route = tsp(distance_matrix, day_places.index(home), workers, time_limit_s)
+			header = (
+				f"\n{city_name.capitalize()} - Day {day_idx}"
+				f"\nMust: {', '.join(mandatory[day_idx])}"
+			)
 			routes.append(
 				RouteInfo(
 					city_name,
-					places,
+					day_places,
 					coords,
 					speed_kmh,
 					day_idx,

@@ -120,14 +120,10 @@ def visualize_route(
 			settings.get("thunderforest_api_key", ""),
 		)
 		header = city_name.capitalize()
-
 		if info.day_idx is not None:
-			try:
-				day_name = f"{int(info.day_idx) + 1}"
-			except:
-				day_name = info.day_idx
-			header += f" Day {day_name}"
-		filename = header + ".html"
+			header += f" Day {info.day_idx}"
+
+		filename = f"{header}.html"
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)
 		output_path = output_dir_path / filename

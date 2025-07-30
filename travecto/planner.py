@@ -1,9 +1,10 @@
 from __future__ import annotations
+
+import logging
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import logging
-import math
 
 from .directions import directions_distance_matrix
 from .geocoder import geocode, load_cache, save_cache
@@ -103,13 +104,22 @@ def get_distance_matrix(
 	coords: Dict[str, Tuple[float, float]],
 	mode: str,
 	settings: Dict[str, Any],
+	quiet: bool,
 ) -> List[List[int]]:
 	if mode == "direct":
 		return haversine_distance_matrix([coords[n] for n in places])
+	directions_cache_file = settings.get(
+		"directions_cache_file", "directions_cache.json"
+	)
 	rate_limit_qps = settings.get("rate_limit_qps", 50)
 	http_timeout_s = settings.get("http_timeout_s", 6)
 	return directions_distance_matrix(
-		[coords[n] for n in places], mode, rate_limit_qps, http_timeout_s
+		[coords[n] for n in places],
+		mode,
+		rate_limit_qps,
+		http_timeout_s,
+		quiet,
+		directions_cache_file,
 	)
 
 
@@ -119,6 +129,7 @@ def compute_routes(
 	workers: int,
 	settings: Dict[str, Any],
 	mode: Optional[str] = None,
+	quiet: bool = False,
 ) -> List[RouteInfo]:
 	cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
 	cache = load_cache(cache_path)
@@ -134,6 +145,7 @@ def compute_routes(
 		settings.get("rate_limit_qps", 50),
 		settings.get("http_timeout_s", 6),
 		settings.get("probe_delay", 0.02),
+		quiet,
 	)
 	save_cache(cache, cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh", avg_speed_kmh(settings))
@@ -147,7 +159,9 @@ def compute_routes(
 			day_places = list(dict.fromkeys(days[day_idx]))
 			if home not in day_places:
 				day_places.insert(0, home)
-			distance_matrix = get_distance_matrix(day_places, coords, mode, settings)
+			distance_matrix = get_distance_matrix(
+				day_places, coords, mode, settings, quiet
+			)
 			route = tsp(distance_matrix, day_places.index(home), workers, time_limit_s)
 			header = (
 				f"\n{city_name.capitalize()} - Day {day_idx}"
@@ -167,7 +181,7 @@ def compute_routes(
 				)
 			)
 	else:
-		distance_matrix = get_distance_matrix(places, coords, mode, settings)
+		distance_matrix = get_distance_matrix(places, coords, mode, settings, quiet)
 		route = tsp(distance_matrix, places.index(home), workers, time_limit_s)
 		header = f"\n{city_name.upper()}"
 		routes.append(
@@ -192,8 +206,9 @@ def plan_route(
 	workers: int,
 	settings: Dict[str, Any],
 	mode: Optional[str] = None,
+	quiet: bool = False,
 ) -> None:
-	for info in compute_routes(city_name, city_cfg, workers, settings, mode):
+	for info in compute_routes(city_name, city_cfg, workers, settings, mode, quiet):
 		print_route(
 			info.header, info.places, info.distance_matrix, info.route, info.speed_kmh
 		)

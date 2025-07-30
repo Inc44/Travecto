@@ -8,7 +8,8 @@ metro_speed = 30
 walking_speed = 5
 
 # Geocoding and API settings
-cache_file = "geocode_cache.json"
+geocode_cache_file = "geocode_cache.json"
+directions_cache_file = "directions_cache.json"
 rate_limit_qps = 50
 http_timeout_s = 6
 probe_delay = 0.02

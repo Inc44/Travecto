@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import argparse
 import logging
 import os
@@ -10,19 +11,23 @@ from .visualizer import visualize_route
 
 def main() -> None:
 	arg_parser = argparse.ArgumentParser(
-		description="Optimizes travel routes using Google Maps Geocoding API and the traveling salesman problem solver from OR-Tools"
+		description=(
+			"Optimizes travel routes using Google Maps Geocoding API, "
+			"Google Maps Directions API, and "
+			"a traveling salesman problem solver from OR-Tools"
+		)
 	)
 	arg_parser.add_argument(
 		"-i",
 		"--input",
 		default="demo.toml",
-		help="Path to the TOML configuration file. Default: `demo.toml`.",
+		help="Path to the TOML configuration file. Default: demo.toml.",
 	)
 	arg_parser.add_argument(
 		"-o",
 		"--output",
 		default="routes",
-		help="Directory for map files. Default: `routes`.",
+		help="Directory for map files. Default: routes.",
 	)
 	arg_parser.add_argument(
 		"--maps",
@@ -47,6 +52,12 @@ def main() -> None:
 		choices=["direct", "walking", "transit", "driving", "bicycling"],
 		help="Override routing mode defined in the configuration.",
 	)
+	arg_parser.add_argument(
+		"-q",
+		"--quiet",
+		action="store_true",
+		help="Hide progress bars.",
+	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -54,14 +65,27 @@ def main() -> None:
 		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable is required")
 	config = load_config(args.input)
 	settings = config.get("settings", {})
-	cities = config.get("cities", {})
-	for city_name, city_cfg in cities.items():
+	quiet: bool = args.quiet or settings.get("quiet", False)
+	for city_name, city_cfg in config.get("cities", {}).items():
 		if args.maps:
 			visualize_route(
-				city_name, city_cfg, args.workers, settings, args.output, args.force
+				city_name,
+				city_cfg,
+				args.workers,
+				settings,
+				args.output,
+				args.force,
+				quiet,
 			)
 		else:
-			plan_route(city_name, city_cfg, args.workers, settings, args.force)
+			plan_route(
+				city_name,
+				city_cfg,
+				args.workers,
+				settings,
+				args.force,
+				quiet,
+			)
 
 
 if __name__ == "__main__":

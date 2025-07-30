@@ -1,8 +1,9 @@
 from __future__ import annotations
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+
 import math
 import webbrowser
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import folium
 
@@ -57,8 +58,10 @@ def create_map(
 	).add_to(fmap)
 	if thunderforest_api_key:
 		folium.TileLayer(
-			tiles="https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey="
-			+ thunderforest_api_key,
+			tiles=(
+				"https://tile.thunderforest.com/transport/"
+				"{z}/{x}/{y}.png?apikey=" + thunderforest_api_key
+			),
 			name="Transport",
 			attr="Thunderforest",
 			show=False,
@@ -109,8 +112,9 @@ def visualize_route(
 	settings: Dict,
 	output_dir: str = "routes",
 	mode: Optional[str] = None,
+	quiet: bool = False,
 ) -> None:
-	for info in compute_routes(city_name, city_cfg, workers, settings, mode):
+	for info in compute_routes(city_name, city_cfg, workers, settings, mode, quiet):
 		places, marker_coords = get_places_coords(info)
 		path_coords = get_path(marker_coords, info.mode, settings)
 		fmap = create_map(
@@ -122,7 +126,6 @@ def visualize_route(
 		header = city_name.capitalize()
 		if info.day_idx is not None:
 			header += f" Day {info.day_idx}"
-
 		filename = f"{header}.html"
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)

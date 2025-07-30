@@ -1,13 +1,29 @@
 from __future__ import annotations
-from typing import List, Tuple
+
 import asyncio
+import json
 import logging
 import os
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 import aiohttp
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 log = logging.getLogger(__name__)
+
+
+def load_cache(path: Path) -> Dict[str, int]:
+	if path.exists():
+		return json.loads(path.read_text(encoding="utf-8"))
+	return {}
+
+
+def save_cache(cache: Dict[str, int], path: Path) -> None:
+	path.write_text(
+		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
+		encoding="utf-8",
+	)
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)
@@ -21,7 +37,10 @@ async def http_get_google_maps_directions(
 ) -> dict:
 	lat1, lng1 = origin
 	lat2, lng2 = destination
-	url = f"https://maps.googleapis.com/maps/api/directions/json?origin={lat1},{lng1}&destination={lat2},{lng2}&mode={mode}&key={google_maps_api_key}"
+	url = (
+		"https://maps.googleapis.com/maps/api/directions/json?"
+		f"origin={lat1},{lng1}&destination={lat2},{lng2}&mode={mode}&key={google_maps_api_key}"
+	)
 	async with session.get(url, timeout=http_timeout_s) as resp:
 		payload = await resp.json()
 		if payload["status"] != "OK":
@@ -72,6 +91,8 @@ def directions_distance_matrix(
 	mode: str,
 	rate_limit_qps: int,
 	http_timeout_s: int,
+	quiet: bool,
+	directions_cache_file: str,
 ) -> List[List[int]]:
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
@@ -115,8 +136,8 @@ async def google_maps_directions_polyline(
 		route = await http_get_google_maps_directions(
 			origin, destination, mode, session, http_timeout_s, google_maps_api_key
 		)
-	encoded = route["overview_polyline"]["points"]
-	return decode_google_maps_polyline(encoded)
+		encoded = route["overview_polyline"]["points"]
+		return decode_google_maps_polyline(encoded)
 
 
 def directions_polyline(

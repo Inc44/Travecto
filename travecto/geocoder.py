@@ -1,14 +1,15 @@
 from __future__ import annotations
-from pathlib import Path
-from typing import Dict, List, Tuple
+
 import asyncio
 import json
 import logging
 import os
 import unicodedata
+from pathlib import Path
+from typing import Dict, List, Tuple
 
-from tenacity import retry, stop_after_attempt, wait_exponential
 import aiohttp
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 log = logging.getLogger(__name__)
 
@@ -20,12 +21,15 @@ def strip_accents(unistr: str) -> str:
 
 def load_cache(path: Path) -> Dict[str, Tuple[float, float]]:
 	if path.exists():
-		return json.loads(path.read_text())
+		return json.loads(path.read_text(encoding="utf-8"))
 	return {}
 
 
 def save_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
-	path.write_text(json.dumps(cache, indent="\t", sort_keys=True))
+	path.write_text(
+		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
+		encoding="utf-8",
+	)
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)
@@ -35,7 +39,10 @@ async def http_get_google_maps_location(
 	http_timeout_s: int,
 	google_maps_api_key: str,
 ) -> Tuple[float, float]:
-	url = f"https://maps.googleapis.com/maps/api/geocode/json?address={aiohttp.helpers.quote(query)}&key={google_maps_api_key}"
+	url = (
+		"https://maps.googleapis.com/maps/api/geocode/json?address="
+		f"{aiohttp.helpers.quote(query)}&key={google_maps_api_key}"
+	)
 	async with session.get(url, timeout=http_timeout_s) as resp:
 		payload = await resp.json()
 		if payload["status"] != "OK":
@@ -89,6 +96,7 @@ async def geocode_google_maps_locations(
 	probe_delay_s: float,
 	google_maps_api_key: str,
 	cache: Dict[str, Tuple[float, float]],
+	quiet: bool,
 ) -> Dict[str, Tuple[float, float]]:
 	gate = asyncio.Semaphore(rate_limit_qps)
 	async with aiohttp.ClientSession() as session:
@@ -106,8 +114,19 @@ async def geocode_google_maps_locations(
 			)
 			for place in places
 		]
-		results = await asyncio.gather(*tasks)
-	return dict(results)
+		if quiet:
+			results = await asyncio.gather(*tasks)
+		else:
+			from tqdm import tqdm
+
+			pbar = tqdm(total=len(tasks), desc=f"Geocoding {city.capitalize()}")
+			results: List[Tuple[str, Tuple[float, float]]] = []
+			for task in asyncio.as_completed(tasks):
+				result = await task
+				results.append(result)
+				pbar.update()
+			pbar.close()
+		return dict(results)
 
 
 def geocode(
@@ -118,6 +137,7 @@ def geocode(
 	rate_limit_qps: int,
 	http_timeout_s: int,
 	probe_delay_s: float,
+	quiet: bool,
 ) -> Dict[str, Tuple[float, float]]:
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
@@ -131,5 +151,6 @@ def geocode(
 		probe_delay_s,
 		google_maps_api_key,
 		cache,
+		quiet,
 	)
 	return asyncio.run(coro)

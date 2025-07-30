@@ -11,13 +11,13 @@ def tsp(
 	workers: int,
 	time_limit_s: int,
 ) -> List[int]:
-	size: int = len(distance_matrix)
+	size = len(distance_matrix)
 	manager = pywrapcp.RoutingIndexManager(size, 1, start_idx)
 	routing_model = pywrapcp.RoutingModel(manager)
 
 	def distance(from_index: int, to_index: int) -> int:
-		origin: int = manager.IndexToNode(from_index)
-		destination: int = manager.IndexToNode(to_index)
+		origin = manager.IndexToNode(from_index)
+		destination = manager.IndexToNode(to_index)
 		return distance_matrix[origin][destination]
 
 	callback_id = routing_model.RegisterTransitCallback(distance)
@@ -35,8 +35,8 @@ def tsp(
 	solution = routing_model.SolveWithParameters(search_params)
 	if solution is None:
 		raise RuntimeError("TSP solver failed to find a solution")
-	route: List[int] = []
-	idx: int = routing_model.Start(0)
+	route = []
+	idx = routing_model.Start(0)
 	while not routing_model.IsEnd(idx):
 		route.append(manager.IndexToNode(idx))
 		idx = solution.Value(routing_model.NextVar(idx))

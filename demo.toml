@@ -15,7 +15,7 @@ http_timeout_s = 6
 probe_delay = 0.02
 
 # TSP solver settings
-tsp_time_limit_s = 6
+tsp_time_limit_s = 1
 
 # Optional Thunderforest API key for transport layer
 thunderforest_api_key = ""

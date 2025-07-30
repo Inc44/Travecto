@@ -65,7 +65,7 @@ def main() -> None:
 		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable is required")
 	config = load_config(args.input)
 	settings = config.get("settings", {})
-	quiet: bool = args.quiet or settings.get("quiet", False)
+	quiet = args.quiet or settings.get("quiet", False)
 	for city_name, city_cfg in config.get("cities", {}).items():
 		if args.maps:
 			visualize_route(

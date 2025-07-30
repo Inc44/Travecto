@@ -24,8 +24,8 @@ def km_to_lng(km: float, lat: float) -> float:
 	return km * KM_TO_LAT / math.cos(math.radians(lat))
 
 
-def bounding_box(
-	coords: List[Tuple[float, float]], margin_km: float = 4.0
+def calculate_bounding_box(
+	coords: List[Tuple[float, float]], margin_km: float = 1.0
 ) -> Tuple[Tuple[float, float], Tuple[float, float]]:
 	lats, lngs = zip(*coords)
 	margin_lat = km_to_lat(margin_km)
@@ -42,20 +42,22 @@ def create_map(
 	names: List[str],
 	thunderforest_api_key: str = "",
 ) -> folium.Map:
-	center_lat = sum(c[0] for c in marker_coords) / len(marker_coords)
-	center_lng = sum(c[1] for c in marker_coords) / len(marker_coords)
-	fmap = folium.Map(location=[center_lat, center_lng], tiles=None, max_bounds=True)
+	center_lat = sum(coord[0] for coord in marker_coords) / len(marker_coords)
+	center_lng = sum(coord[1] for coord in marker_coords) / len(marker_coords)
+	folium_map = folium.Map(
+		location=[center_lat, center_lng], tiles=None, max_bounds=True
+	)
 	folium.TileLayer(
 		tiles="https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
 		name="Map",
 		attr="OpenStreetMap France",
-	).add_to(fmap)
+	).add_to(folium_map)
 	folium.TileLayer(
 		tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 		name="Satellite",
 		attr="Esri",
 		show=False,
-	).add_to(fmap)
+	).add_to(folium_map)
 	if thunderforest_api_key:
 		folium.TileLayer(
 			tiles=(
@@ -65,27 +67,31 @@ def create_map(
 			name="Transport",
 			attr="Thunderforest",
 			show=False,
-		).add_to(fmap)
-	folium.LayerControl(position="topright").add_to(fmap)
-	sw, ne = bounding_box(path_coords)
-	fmap.fit_bounds([sw, ne])
-	folium.PolyLine(path_coords, color="blue", weight=4, opacity=0.75).add_to(fmap)
+		).add_to(folium_map)
+	folium.LayerControl(position="topright").add_to(folium_map)
+	sw, ne = calculate_bounding_box(path_coords)
+	folium_map.fit_bounds([sw, ne])
+	folium.PolyLine(path_coords, color="blue", weight=4, opacity=0.75).add_to(
+		folium_map
+	)
 	for idx, (lat, lng) in enumerate(marker_coords):
 		folium.Marker(
 			location=[lat, lng],
 			tooltip=f"{idx} {names[idx]}",
 			icon=folium.Icon(color="red" if idx == 0 else "blue"),
-		).add_to(fmap)
-	return fmap
+		).add_to(folium_map)
+	return folium_map
 
 
-def get_places_coords(info: RouteInfo) -> Tuple[List[str], List[Tuple[float, float]]]:
+def extract_places_coords(
+	info: RouteInfo,
+) -> Tuple[List[str], List[Tuple[float, float]]]:
 	places = [info.places[i] for i in info.route]
-	coords = [info.coords[p] for p in places]
+	coords = [info.coords[place] for place in places]
 	return places, coords
 
 
-def get_path(
+def build_path(
 	coords: List[Tuple[float, float]],
 	mode: str,
 	settings: Dict[str, Any],
@@ -93,7 +99,7 @@ def get_path(
 	if mode == "direct":
 		return coords
 	http_timeout_s = settings.get("http_timeout_s", 6)
-	path: List[Tuple[float, float]] = []
+	path = []
 	for i in range(len(coords) - 1):
 		segment = directions_polyline(coords[i], coords[i + 1], mode, http_timeout_s)
 		if not segment:
@@ -115,9 +121,9 @@ def visualize_route(
 	quiet: bool = False,
 ) -> None:
 	for info in compute_routes(city_name, city_cfg, workers, settings, mode, quiet):
-		places, marker_coords = get_places_coords(info)
-		path_coords = get_path(marker_coords, info.mode, settings)
-		fmap = create_map(
+		places, marker_coords = extract_places_coords(info)
+		path_coords = build_path(marker_coords, info.mode, settings)
+		folium_map = create_map(
 			path_coords,
 			marker_coords,
 			places,
@@ -130,5 +136,5 @@ def visualize_route(
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)
 		output_path = output_dir_path / filename
-		fmap.save(output_path)
+		folium_map.save(output_path)
 		webbrowser.open(output_path.as_uri())

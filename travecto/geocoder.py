@@ -14,9 +14,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 log = logging.getLogger(__name__)
 
 
-def strip_accents(unistr: str) -> str:
-	norm = unicodedata.normalize("NFKD", unistr)
-	return "".join(chr for chr in norm if not unicodedata.combining(chr))
+def strip_accents(text: str) -> str:
+	normalized_text = unicodedata.normalize("NFKD", text)
+	return "".join(char for char in normalized_text if not unicodedata.combining(char))
 
 
 def load_geocode_cache(path: Path) -> Dict[str, Tuple[float, float]]:
@@ -33,7 +33,7 @@ def save_geocode_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> Non
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)
-async def http_get_google_maps_location(
+async def fetch_google_maps_location(
 	query: str,
 	session: aiohttp.ClientSession,
 	http_timeout_s: int,
@@ -47,8 +47,8 @@ async def http_get_google_maps_location(
 		payload = await resp.json()
 		if payload["status"] != "OK":
 			raise RuntimeError(f"Geocode failed for '{query}': {payload['status']}")
-		loc = payload["results"][0]["geometry"]["location"]
-		return loc["lat"], loc["lng"]
+		location = payload["results"][0]["geometry"]["location"]
+		return location["lat"], location["lng"]
 
 
 async def geocode_google_maps_location(
@@ -63,26 +63,26 @@ async def geocode_google_maps_location(
 	cache: Dict[str, Tuple[float, float]],
 ) -> Tuple[str, Tuple[float, float]]:
 	if name in cache:
-		return name, tuple(cache[name])
-	probes: List[str] = [alt_map.get(name, name)]
-	if city not in probes[0]:
-		probes.append(f"{name}, {city}")
-	probes.extend(
+		return name, cache[name]
+	search_queries = [alt_map.get(name, name)]
+	if city not in search_queries[0]:
+		search_queries.append(f"{name}, {city}")
+	search_queries.extend(
 		[
 			f"{name}, {city}, France",
 			strip_accents(name) + f", {city}",
 		]
 	)
-	for probe in probes:
+	for query in search_queries:
 		async with gate:
 			try:
-				coords = await http_get_google_maps_location(
-					probe, session, http_timeout_s, google_maps_api_key
+				coords = await fetch_google_maps_location(
+					query, session, http_timeout_s, google_maps_api_key
 				)
 				cache[name] = coords
 				return name, coords
 			except Exception as e:
-				log.debug("Probe '%s' failed: %s", probe, e)
+				log.debug("Query '%s' failed: %s", query, e)
 				await asyncio.sleep(probe_delay_s)
 	raise RuntimeError(f"Geocoding failed for {name}")
 
@@ -99,8 +99,9 @@ async def geocode_google_maps_locations(
 	quiet: bool,
 ) -> Dict[str, Tuple[float, float]]:
 	if all(place in cache for place in places):
-		print("All geocoded places found in cache")
-		return {place: tuple(cache[place]) for place in places}
+		if not quiet:
+			print("All geocoded places found in cache")
+		return {place: cache[place] for place in places}
 	gate = asyncio.Semaphore(rate_limit_qps)
 	async with aiohttp.ClientSession() as session:
 		tasks = [
@@ -123,7 +124,7 @@ async def geocode_google_maps_locations(
 			from tqdm import tqdm
 
 			pbar = tqdm(total=len(tasks), desc=f"Geocoding {city.capitalize()}")
-			results: List[Tuple[str, Tuple[float, float]]] = []
+			results = []
 			for task in asyncio.as_completed(tasks):
 				result = await task
 				results.append(result)
@@ -145,15 +146,16 @@ def geocode(
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
 		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
-	coro = geocode_google_maps_locations(
-		places,
-		city,
-		alt_map,
-		rate_limit_qps,
-		http_timeout_s,
-		probe_delay_s,
-		google_maps_api_key,
-		cache,
-		quiet,
+	return asyncio.run(
+		geocode_google_maps_locations(
+			places,
+			city,
+			alt_map,
+			rate_limit_qps,
+			http_timeout_s,
+			probe_delay_s,
+			google_maps_api_key,
+			cache,
+			quiet,
+		)
 	)
-	return asyncio.run(coro)

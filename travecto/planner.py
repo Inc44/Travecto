@@ -6,8 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .directions import directions_distance_matrix
-from .geocoder import geocode, load_cache, save_cache
+from .directions import (
+	directions_distance_matrix,
+	load_directions_cache,
+	save_directions_cache,
+)
+from .geocoder import geocode, load_geocode_cache, save_geocode_cache
 from .solver import tsp
 
 log = logging.getLogger(__name__)
@@ -131,8 +135,8 @@ def compute_routes(
 	mode: Optional[str] = None,
 	quiet: bool = False,
 ) -> List[RouteInfo]:
-	cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
-	cache = load_cache(cache_path)
+	geocode_cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
+	geocode_cache = load_geocode_cache(geocode_cache_path)
 	home = city_cfg["home"]
 	places: List[str] = list(dict.fromkeys(city_cfg.get("places", [])))
 	if home not in places:
@@ -141,13 +145,13 @@ def compute_routes(
 		places,
 		city_name,
 		city_cfg.get("alt_addresses", {}),
-		cache,
+		geocode_cache,
 		settings.get("rate_limit_qps", 50),
 		settings.get("http_timeout_s", 6),
 		settings.get("probe_delay", 0.02),
 		quiet,
 	)
-	save_cache(cache, cache_path)
+	save_geocode_cache(geocode_cache, geocode_cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh", avg_speed_kmh(settings))
 	time_limit_s = settings.get("tsp_time_limit_s", 6)
 	mode = mode or city_cfg.get("mode", "direct")

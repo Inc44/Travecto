@@ -13,13 +13,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 log = logging.getLogger(__name__)
 
 
-def load_cache(path: Path) -> Dict[str, int]:
+def load_directions_cache(path: Path) -> Dict[str, int]:
 	if path.exists():
 		return json.loads(path.read_text(encoding="utf-8"))
 	return {}
 
 
-def save_cache(cache: Dict[str, int], path: Path) -> None:
+def save_directions_cache(cache: Dict[str, int], path: Path) -> None:
 	path.write_text(
 		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
 		encoding="utf-8",

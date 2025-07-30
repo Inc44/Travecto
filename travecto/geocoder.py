@@ -19,13 +19,13 @@ def strip_accents(unistr: str) -> str:
 	return "".join(chr for chr in norm if not unicodedata.combining(chr))
 
 
-def load_cache(path: Path) -> Dict[str, Tuple[float, float]]:
+def load_geocode_cache(path: Path) -> Dict[str, Tuple[float, float]]:
 	if path.exists():
 		return json.loads(path.read_text(encoding="utf-8"))
 	return {}
 
 
-def save_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
+def save_geocode_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
 	path.write_text(
 		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
 		encoding="utf-8",

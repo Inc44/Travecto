@@ -3,6 +3,7 @@
 TODO.md
 build/**/*
 config.toml
+directions_cache.json
 dist/**/*
 geocode_cache.json
 routes/**/*

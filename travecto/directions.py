@@ -48,20 +48,41 @@ async def http_get_google_maps_directions(
 		return payload["routes"][0]
 
 
-async def http_get_google_maps_directions_distance_matrix(
+def directions_distance_matrix(
 	coords: List[Tuple[float, float]],
 	mode: str,
 	rate_limit_qps: int,
 	http_timeout_s: int,
-	google_maps_api_key: str,
+	quiet: bool,
+	directions_cache_path: Path,
 ) -> List[List[int]]:
+	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
+	if not google_maps_api_key:
+		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
+	directions_cache: Dict[str, int] = load_directions_cache(directions_cache_path)
 	size = len(coords)
 	distance_matrix: List[List[int]] = [[0] * size for _ in range(size)]
-	gate = asyncio.Semaphore(rate_limit_qps)
-	async with aiohttp.ClientSession() as session:
-		tasks = []
-		for i in range(size):
-			for j in range(i + 1, size):
+	cache_misses: List[Tuple[int, int]] = []
+	for i in range(size):
+		for j in range(i + 1, size):
+			cache_key = get_cache_key(coords[i], coords[j], mode)
+			if cache_key in directions_cache:
+				distance = directions_cache[cache_key]
+				distance_matrix[i][j] = distance_matrix[j][i] = distance
+			else:
+				cache_misses.append((i, j))
+	if not cache_misses:
+		if not quiet:
+			print(f"All directions found in cache")
+		return distance_matrix
+
+	async def http_get_missing_google_maps_directions_distance_matrix() -> (
+		List[Tuple[int, int, int]]
+	):
+		gate = asyncio.Semaphore(rate_limit_qps)
+		async with aiohttp.ClientSession() as session:
+			tasks = []
+			for i, j in cache_misses:
 
 				async def http_fetch_google_maps_directions(
 					i=i, j=j
@@ -75,32 +96,38 @@ async def http_get_google_maps_directions_distance_matrix(
 							http_timeout_s,
 							google_maps_api_key,
 						)
-					distance = route["legs"][0]["distance"]["value"]
-					return i, j, distance
+						distance = route["legs"][0]["distance"]["value"]
+						return i, j, distance
 
 				tasks.append(http_fetch_google_maps_directions())
-		results = await asyncio.gather(*tasks)
-	for i, j, distance in results:
-		distance_matrix[i][j] = distance
-		distance_matrix[j][i] = distance
+			if quiet:
+				return await asyncio.gather(*tasks)
+			from tqdm import tqdm
+
+			results: List[Tuple[int, int, int]] = []
+			pbar = tqdm(total=len(tasks), desc="Fetching directions")
+			for coro in asyncio.as_completed(tasks):
+				res = await coro
+				results.append(res)
+				pbar.update()
+			pbar.close()
+			return results
+
+	for i, j, distance in asyncio.run(
+		http_get_missing_google_maps_directions_distance_matrix()
+	):
+		distance_matrix[i][j] = distance_matrix[j][i] = distance
+		directions_cache[get_cache_key(coords[i], coords[j], mode)] = distance
+	save_directions_cache(directions_cache, directions_cache_path)
 	return distance_matrix
 
 
-def directions_distance_matrix(
-	coords: List[Tuple[float, float]],
-	mode: str,
-	rate_limit_qps: int,
-	http_timeout_s: int,
-	quiet: bool,
-	directions_cache_file: str,
-) -> List[List[int]]:
-	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-	if not google_maps_api_key:
-		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
-	coro = http_get_google_maps_directions_distance_matrix(
-		coords, mode, rate_limit_qps, http_timeout_s, google_maps_api_key
-	)
-	return asyncio.run(coro)
+def get_cache_key(
+	coord1: Tuple[float, float], coord2: Tuple[float, float], mode: str
+) -> str:
+	lat1, lng1 = coord1
+	lat2, lng2 = coord2
+	return f"{lat1},{lng1}|{lat2},{lng2}|{mode}"
 
 
 def decode_google_maps_polyline(line: str) -> List[Tuple[float, float]]:
@@ -149,7 +176,8 @@ def directions_polyline(
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
 		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
-	coro = google_maps_directions_polyline(
-		origin, destination, mode, http_timeout_s, google_maps_api_key
+	return asyncio.run(
+		google_maps_directions_polyline(
+			origin, destination, mode, http_timeout_s, google_maps_api_key
+		)
 	)
-	return asyncio.run(coro)

@@ -98,6 +98,9 @@ async def geocode_google_maps_locations(
 	cache: Dict[str, Tuple[float, float]],
 	quiet: bool,
 ) -> Dict[str, Tuple[float, float]]:
+	if all(place in cache for place in places):
+		print("All geocoded places found in cache")
+		return {place: tuple(cache[place]) for place in places}
 	gate = asyncio.Semaphore(rate_limit_qps)
 	async with aiohttp.ClientSession() as session:
 		tasks = [

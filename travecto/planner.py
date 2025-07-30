@@ -6,11 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .directions import (
-	directions_distance_matrix,
-	load_directions_cache,
-	save_directions_cache,
-)
+from .directions import directions_distance_matrix
 from .geocoder import geocode, load_geocode_cache, save_geocode_cache
 from .solver import tsp
 
@@ -112,8 +108,8 @@ def get_distance_matrix(
 ) -> List[List[int]]:
 	if mode == "direct":
 		return haversine_distance_matrix([coords[n] for n in places])
-	directions_cache_file = settings.get(
-		"directions_cache_file", "directions_cache.json"
+	directions_cache_path = Path(
+		settings.get("directions_cache_file", "directions_cache.json")
 	)
 	rate_limit_qps = settings.get("rate_limit_qps", 50)
 	http_timeout_s = settings.get("http_timeout_s", 6)
@@ -123,7 +119,7 @@ def get_distance_matrix(
 		rate_limit_qps,
 		http_timeout_s,
 		quiet,
-		directions_cache_file,
+		directions_cache_path,
 	)
 
 

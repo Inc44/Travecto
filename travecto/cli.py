@@ -42,6 +42,11 @@ def main() -> None:
 		default="ERROR",
 		help="Set the logging level. Default: ERROR.",
 	)
+	arg_parser.add_argument(
+		"--force",
+		choices=["direct", "walking", "transit", "driving", "bicycling"],
+		help="Override routing mode defined in the configuration.",
+	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -52,9 +57,11 @@ def main() -> None:
 	cities = config.get("cities", {})
 	for city_name, city_cfg in cities.items():
 		if args.maps:
-			visualize_route(city_name, city_cfg, args.workers, settings, args.output)
+			visualize_route(
+				city_name, city_cfg, args.workers, settings, args.output, args.force
+			)
 		else:
-			plan_route(city_name, city_cfg, args.workers, settings)
+			plan_route(city_name, city_cfg, args.workers, settings, args.force)
 
 
 if __name__ == "__main__":

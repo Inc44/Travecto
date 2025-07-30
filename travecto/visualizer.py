@@ -1,11 +1,12 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import math
 import webbrowser
 
 import folium
 
+from .directions import directions_polyline
 from .planner import RouteInfo, compute_routes
 
 EARTH_RADIUS_M = 6_371_008
@@ -35,16 +36,14 @@ def bounding_box(
 
 
 def create_map(
-	coords: List[Tuple[float, float]], names: List[str], thunderforest_api_key: str = ""
+	path_coords: List[Tuple[float, float]],
+	marker_coords: List[Tuple[float, float]],
+	names: List[str],
+	thunderforest_api_key: str = "",
 ) -> folium.Map:
-	center_lat = sum(c[0] for c in coords) / len(coords)
-	center_lng = sum(c[1] for c in coords) / len(coords)
-	fmap = folium.Map(
-		location=[center_lat, center_lng],
-		tiles=None,
-		max_bounds=True,
-		zoom_control=True,
-	)
+	center_lat = sum(c[0] for c in marker_coords) / len(marker_coords)
+	center_lng = sum(c[1] for c in marker_coords) / len(marker_coords)
+	fmap = folium.Map(location=[center_lat, center_lng], tiles=None, max_bounds=True)
 	folium.TileLayer(
 		tiles="https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
 		name="Map",
@@ -65,14 +64,14 @@ def create_map(
 			show=False,
 		).add_to(fmap)
 	folium.LayerControl(position="topright").add_to(fmap)
-	sw, ne = bounding_box(coords)
+	sw, ne = bounding_box(path_coords)
 	fmap.fit_bounds([sw, ne])
-	folium.PolyLine(coords, color="blue", weight=4, opacity=0.75).add_to(fmap)
-	for index, (lat, lng) in enumerate(coords):
+	folium.PolyLine(path_coords, color="blue", weight=4, opacity=0.75).add_to(fmap)
+	for idx, (lat, lng) in enumerate(marker_coords):
 		folium.Marker(
 			location=[lat, lng],
-			tooltip=f"{index} {names[index]}",
-			icon=folium.Icon(color="red" if index == 0 else "blue"),
+			tooltip=f"{idx} {names[idx]}",
+			icon=folium.Icon(color="red" if idx == 0 else "blue"),
 		).add_to(fmap)
 	return fmap
 
@@ -83,19 +82,51 @@ def get_places_coords(info: RouteInfo) -> Tuple[List[str], List[Tuple[float, flo
 	return places, coords
 
 
+def get_path(
+	coords: List[Tuple[float, float]],
+	mode: str,
+	settings: Dict[str, Any],
+) -> List[Tuple[float, float]]:
+	if mode == "direct":
+		return coords
+	http_timeout_s = settings.get("http_timeout_s", 6)
+	path: List[Tuple[float, float]] = []
+	for i in range(len(coords) - 1):
+		segment = directions_polyline(coords[i], coords[i + 1], mode, http_timeout_s)
+		if not segment:
+			continue
+		if path:
+			path.extend(segment[1:])
+		else:
+			path.extend(segment)
+	return path or coords
+
+
 def visualize_route(
 	city_name: str,
 	city_cfg: Dict,
 	workers: int,
 	settings: Dict,
 	output_dir: str = "routes",
+	mode: Optional[str] = None,
 ) -> None:
-	for info in compute_routes(city_name, city_cfg, workers, settings):
-		places, coords = get_places_coords(info)
-		fmap = create_map(coords, places, settings.get("thunderforest_api_key", ""))
-		header = f"{city_name.capitalize()}"
+	for info in compute_routes(city_name, city_cfg, workers, settings, mode):
+		places, marker_coords = get_places_coords(info)
+		path_coords = get_path(marker_coords, info.mode, settings)
+		fmap = create_map(
+			path_coords,
+			marker_coords,
+			places,
+			settings.get("thunderforest_api_key", ""),
+		)
+		header = city_name.capitalize()
+
 		if info.day_idx is not None:
-			header += f" Day {int(info.day_idx) + 1}"
+			try:
+				day_name = f"{int(info.day_idx) + 1}"
+			except:
+				day_name = info.day_idx
+			header += f" Day {day_name}"
 		filename = header + ".html"
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)

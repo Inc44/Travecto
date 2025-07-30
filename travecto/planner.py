@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import logging
 import math
 
+from .directions import directions_distance_matrix
 from .geocoder import geocode, load_cache, save_cache
 from .solver import tsp
 
@@ -20,6 +21,8 @@ class RouteInfo:
 	day_idx: Optional[int]
 	route: List[int]
 	header: str
+	distance_matrix: List[List[int]]
+	mode: str
 
 
 def haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> int:
@@ -27,10 +30,10 @@ def haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float])
 	lat1, lng1 = map(math.radians, coord1)
 	lat2, lng2 = map(math.radians, coord2)
 	dlat = lat2 - lat1
-	dlon = lng2 - lng1
+	dlng = lng2 - lng1
 	hav = (
 		math.sin(dlat / 2) ** 2
-		+ math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+		+ math.cos(lat1) * math.cos(lat2) * math.sin(dlng / 2) ** 2
 	)
 	return int(earth_radius_m * 2 * math.atan2(math.sqrt(hav), math.sqrt(1 - hav)))
 
@@ -45,16 +48,16 @@ def haversine_distance_matrix(coords: List[Tuple[float, float]]) -> List[List[in
 
 def centroid(coords: List[Tuple[float, float]]) -> Tuple[float, float]:
 	lat = sum(c[0] for c in coords) / len(coords)
-	lon = sum(c[1] for c in coords) / len(coords)
-	return lat, lon
+	lng = sum(c[1] for c in coords) / len(coords)
+	return lat, lng
 
 
 def assign_days(
 	coords: Dict[str, Tuple[float, float]],
-	mandatory: Dict[int, List[str]],
+	mandatory: Dict[str, List[str]],
 	home: str,
 ) -> Dict[int, List[str]]:
-	days: Dict[int, List[str]] = {d: list(lst) for d, lst in mandatory.items()}
+	days: Dict[str, List[str]] = {d: list(lst) for d, lst in mandatory.items()}
 	anchors = {d: centroid([coords[p] for p in lst]) for d, lst in days.items()}
 	for place in coords:
 		if place == home or any(place in grp for grp in days.values()):
@@ -94,16 +97,19 @@ def print_route(
 	print(f"{total_m / 1000:.1f} km | {avg_time_minutes(total_m, speed_kmh):.0f} min")
 
 
-def solve_route(
+def get_distance_matrix(
 	places: List[str],
 	coords: Dict[str, Tuple[float, float]],
-	home: str,
-	workers: int,
-	time_limit_s: int,
-) -> List[int]:
-	start_idx = places.index(home)
-	distance_matrix = haversine_distance_matrix([coords[p] for p in places])
-	return tsp(distance_matrix, start_idx, workers, time_limit_s)
+	mode: str,
+	settings: Dict[str, Any],
+) -> List[List[int]]:
+	if mode == "direct":
+		return haversine_distance_matrix([coords[n] for n in places])
+	rate_limit_qps = settings.get("rate_limit_qps", 50)
+	http_timeout_s = settings.get("http_timeout_s", 6)
+	return directions_distance_matrix(
+		[coords[n] for n in places], mode, rate_limit_qps, http_timeout_s
+	)
 
 
 def compute_routes(
@@ -111,6 +117,7 @@ def compute_routes(
 	city_cfg: Dict[str, Any],
 	workers: int,
 	settings: Dict[str, Any],
+	mode: Optional[str] = None,
 ) -> List[RouteInfo]:
 	cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
 	cache = load_cache(cache_path)
@@ -130,6 +137,7 @@ def compute_routes(
 	save_cache(cache, cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh", avg_speed_kmh(settings))
 	time_limit_s = settings.get("tsp_time_limit_s", 6)
+	mode = mode or city_cfg.get("mode", "direct")
 	mandatory = city_cfg.get("mandatory_by_day", {})
 	routes: List[RouteInfo] = []
 	if mandatory:
@@ -138,11 +146,13 @@ def compute_routes(
 			places = list(dict.fromkeys(days[day_idx]))
 			if home not in places:
 				places.insert(0, home)
-			route = solve_route(places, coords, home, workers, time_limit_s)
-			header = (
-				f"\n{city_name.upper()} – DAY {int(day_idx) + 1}\nMust: "
-				+ ", ".join(mandatory[day_idx])
-			)
+			distance_matrix = get_distance_matrix(places, coords, mode, settings)
+			route = tsp(distance_matrix, places.index(home), workers, time_limit_s)
+			try:
+				day_name = f"{int(day_idx) + 1}"
+			except:
+				day_name = day_idx
+			header = f"\n{city_name.capitalize()} - Day {day_name}\nMust: {', '.join(mandatory[day_idx])}"
 			routes.append(
 				RouteInfo(
 					city_name,
@@ -152,10 +162,13 @@ def compute_routes(
 					day_idx,
 					route,
 					header,
+					distance_matrix,
+					mode,
 				)
 			)
 	else:
-		route = solve_route(places, coords, home, workers, time_limit_s)
+		distance_matrix = get_distance_matrix(places, coords, mode, settings)
+		route = tsp(distance_matrix, places.index(home), workers, time_limit_s)
 		header = f"\n{city_name.upper()}"
 		routes.append(
 			RouteInfo(
@@ -166,6 +179,8 @@ def compute_routes(
 				None,
 				route,
 				header,
+				distance_matrix,
+				mode,
 			)
 		)
 	return routes
@@ -176,11 +191,9 @@ def plan_route(
 	city_cfg: Dict[str, Any],
 	workers: int,
 	settings: Dict[str, Any],
+	mode: Optional[str] = None,
 ) -> None:
-	for info in compute_routes(city_name, city_cfg, workers, settings):
-		distance_matrix = haversine_distance_matrix(
-			[info.coords[p] for p in info.places]
-		)
+	for info in compute_routes(city_name, city_cfg, workers, settings, mode):
 		print_route(
-			info.header, info.places, distance_matrix, info.route, info.speed_kmh
+			info.header, info.places, info.distance_matrix, info.route, info.speed_kmh
 		)

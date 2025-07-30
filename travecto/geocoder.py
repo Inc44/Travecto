@@ -32,11 +32,11 @@ def save_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
 async def http_get_google_maps_location(
 	query: str,
 	session: aiohttp.ClientSession,
-	timeout_s: int,
+	http_timeout_s: int,
 	google_maps_api_key: str,
 ) -> Tuple[float, float]:
 	url = f"https://maps.googleapis.com/maps/api/geocode/json?address={aiohttp.helpers.quote(query)}&key={google_maps_api_key}"
-	async with session.get(url, timeout=timeout_s) as resp:
+	async with session.get(url, timeout=http_timeout_s) as resp:
 		payload = await resp.json()
 		if payload["status"] != "OK":
 			raise RuntimeError(f"Geocode failed for '{query}': {payload['status']}")
@@ -48,7 +48,7 @@ async def geocode_google_maps_location(
 	name: str,
 	city: str,
 	alt_map: Dict[str, str],
-	timeout_s: int,
+	http_timeout_s: int,
 	probe_delay_s: float,
 	gate: asyncio.Semaphore,
 	session: aiohttp.ClientSession,
@@ -70,7 +70,7 @@ async def geocode_google_maps_location(
 		async with gate:
 			try:
 				coords = await http_get_google_maps_location(
-					probe, session, timeout_s, google_maps_api_key
+					probe, session, http_timeout_s, google_maps_api_key
 				)
 				cache[name] = coords
 				return name, coords
@@ -85,7 +85,7 @@ async def geocode_google_maps_locations(
 	city: str,
 	alt_map: Dict[str, str],
 	rate_limit_qps: int,
-	timeout_s: int,
+	http_timeout_s: int,
 	probe_delay_s: float,
 	google_maps_api_key: str,
 	cache: Dict[str, Tuple[float, float]],
@@ -97,7 +97,7 @@ async def geocode_google_maps_locations(
 				place,
 				city,
 				alt_map,
-				timeout_s,
+				http_timeout_s,
 				probe_delay_s,
 				gate,
 				session,
@@ -116,7 +116,7 @@ def geocode(
 	alt_map: Dict[str, str],
 	cache: Dict[str, Tuple[float, float]],
 	rate_limit_qps: int,
-	timeout_s: int,
+	http_timeout_s: int,
 	probe_delay_s: float,
 ) -> Dict[str, Tuple[float, float]]:
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -127,7 +127,7 @@ def geocode(
 		city,
 		alt_map,
 		rate_limit_qps,
-		timeout_s,
+		http_timeout_s,
 		probe_delay_s,
 		google_maps_api_key,
 		cache,

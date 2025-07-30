@@ -35,9 +35,9 @@ def tsp(
 	if solution is None:
 		raise RuntimeError("TSP solver failed to find a solution")
 	route: List[int] = []
-	index: int = routing_model.Start(0)
-	while not routing_model.IsEnd(index):
-		route.append(manager.IndexToNode(index))
-		index = solution.Value(routing_model.NextVar(index))
-	route.append(manager.IndexToNode(index))
+	idx: int = routing_model.Start(0)
+	while not routing_model.IsEnd(idx):
+		route.append(manager.IndexToNode(idx))
+		idx = solution.Value(routing_model.NextVar(idx))
+	route.append(manager.IndexToNode(idx))
 	return route

@@ -60,11 +60,21 @@ def main() -> None:
 	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
-	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-	if not google_maps_api_key:
-		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable is required")
 	config = load_config(args.input)
 	settings = config.get("settings", {})
+	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY") or settings.get(
+		"google_maps_api_key"
+	)
+	if not google_maps_api_key:
+		raise RuntimeError(
+			"google_maps_api_key setting or GOOGLE_MAPS_API_KEY environment variable is required"
+		)
+	settings["google_maps_api_key"] = google_maps_api_key
+	thunderforest_api_key = os.getenv("THUNDERFOREST_API_KEY") or settings.get(
+		"thunderforest_api_key", ""
+	)
+	if thunderforest_api_key:
+		settings["thunderforest_api_key"] = thunderforest_api_key
 	quiet = args.quiet or settings.get("quiet", False)
 	for city_name, city_cfg in config.get("cities", {}).items():
 		if args.maps:

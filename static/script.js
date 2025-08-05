@@ -15,7 +15,7 @@ function populateDays(resp)
 
 function renderList(resp)
 {
-	const list = document.getElementById('listView');
+	const list = document.getElementById('list');
 	list.innerHTML = '';
 	resp.routes.forEach(info =>
 	{

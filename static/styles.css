@@ -1,5 +1,4 @@
 * {
-	background-color: white;
 	box-sizing: border-box;
 	margin: 0;
 }
@@ -7,6 +6,7 @@
 body {
 	font-family: monospace;
 	padding: 2rem;
+	line-height: 1.5;
 }
 
 h1 {
@@ -41,13 +41,19 @@ textarea {
 }
 
 button {
-	background: black;
+	background-color: black;
 	color: white;
 	cursor: pointer;
+	transition: color 0.3s, background-color 0.3s;
 }
 
-#listView,
-#mapContainer {
+button:hover {
+	background-color: white;
+	color: black;
+}
+
+#list,
+#map {
 	flex: 1 1 20rem;
 }
 
@@ -59,4 +65,14 @@ button {
 
 .hidden {
 	display: none;
+}
+
+#list ol {
+	margin: 0.5rem 0 1rem 0;
+	padding-left: 1.5rem;
+}
+
+#list h2 {
+	border-bottom: 0.25rem solid black;
+	padding-bottom: 0.25rem;
 }

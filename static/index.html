@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Optimizes travel routes using Google Maps Geocoding API and the traveling salesman problem solver from OR-Tools.">
+	<title>Travecto</title>
+	<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><text y='25rem' font-size='480'>📍</text></svg>">
+	<link href="styles.css" rel="stylesheet">
+</head>
+
+<body>
+	<h1>Travecto</h1>
+	<section class="layout">
+		<form id="controls">
+			<label>Home<input id="home" value="Tour Montparnasse 75015">
+			</label>
+			<label>Places (one per line)<textarea id="places" style="height:8rem">
+Arc de Triomphe 75008
+Basilique du Sacré-Cœur de Montmartre 75018
+Cathédrale Notre-Dame de Paris 75004
+Champs-Élysées 75008
+Château de Versailles 78000
+Grande Arche de la Défense 92800
+Hôtel des Invalides 75007
+Jardin du Luxembourg 75006
+Montmartre 75018
+Musée du Louvre 75001
+Obélisque de Louxor 75008
+Palais Garnier 75009
+Panthéon 75005
+Place de la Concorde 75008
+Sainte-Chapelle 75001
+The Centre Pompidou 75004
+Tour Eiffel 75007
+Tour Montparnasse 75015</textarea>
+			</label>
+			<label>Mandatory by day (day|place1,place2)<textarea id="mandatoryByDay" style="height:6rem">
+1|Tour Eiffel 75007,Montmartre 75018
+2|Musée du Louvre 75001
+3|Château de Versailles 78000</textarea>
+			</label>
+			<label>Alternative address (original|replacement)<textarea id="altAddresses" style="height:4rem">
+Obélisque de Louxor 75008|73 Pl. de la Concorde 75008 Paris</textarea>
+			</label>
+			<label>Mode<select id="mode">
+					<option selected>direct</option>
+					<option>walking</option>
+					<option>transit</option>
+					<option>driving</option>
+					<option>bicycling</option>
+				</select>
+			</label>
+			<label>View<select id="view">
+					<option selected>list</option>
+					<option>map</option>
+				</select>
+			</label>
+			<select id="day" class="hidden"></select>
+			<button id="plan" type="button">Plan</button>
+		</form>
+		<article id="listView"></article>
+		<div id="mapContainer" class="hidden"><iframe id="mapFrame"></iframe></div>
+	</section>
+	<script src="script.js" defer></script>
+</body>
+
+</html>

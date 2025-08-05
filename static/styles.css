@@ -1,0 +1,62 @@
+* {
+	background-color: white;
+	box-sizing: border-box;
+	margin: 0;
+}
+
+body {
+	font-family: monospace;
+	padding: 2rem;
+}
+
+h1 {
+	border: 0.25rem solid black;
+	display: inline-block;
+	font-size: 2rem;
+	padding: 0.5rem 1rem;
+}
+
+.layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2rem;
+	margin-top: 2rem;
+}
+
+#controls {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 20rem;
+	gap: 1rem;
+}
+
+button,
+input,
+select,
+textarea {
+	border: 0.25rem solid black;
+	font-family: inherit;
+	padding: 0.5rem;
+	width: 100%;
+}
+
+button {
+	background: black;
+	color: white;
+	cursor: pointer;
+}
+
+#listView,
+#mapContainer {
+	flex: 1 1 20rem;
+}
+
+#mapFrame {
+	border: 0.25rem solid black;
+	height: 37.5rem;
+	width: 100%;
+}
+
+.hidden {
+	display: none;
+}

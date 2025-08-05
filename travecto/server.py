@@ -34,17 +34,18 @@ class PlanRequest(BaseModel):
 
 
 def hash_json(obj: Any) -> str:
-	return hashlib.sha256(
-		json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False).encode("utf-8")
-	).hexdigest()[:11]
+	payload = json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False)
+	return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:11]
 
 
-def render_map(info, settings, output_dir: Path = "routes") -> str:
-	output_dir.mkdir(parents=True, exist_ok=True)
+def render_map(
+	info, settings: Dict[str, Any], output_dir: str | Path = "static/routes"
+) -> str:
 	places = [info.places[i] for i in info.route]
-	output_path = (
-		output_dir / f"{hash_json({'places': places, 'mode': info.mode})}.html"
-	)
+	filename = f"{hash_json({'places': places, 'mode': info.mode})}.html"
+	output_dir_path = Path(output_dir).expanduser().resolve()
+	output_dir_path.mkdir(parents=True, exist_ok=True)
+	output_path = output_dir_path / filename
 	if not output_path.exists():
 		places, marker_coords = extract_places_coords(info)
 		path_coords = build_path(marker_coords, info.mode, settings)

@@ -8,5 +8,6 @@ dist/**/*
 geocode_cache.json
 routes/**/*
 server.txt
+static/routes/**/*
 travecto.egg-info/**/*
 web/routes/**/*

@@ -36,7 +36,7 @@ The Centre Pompidou 75004
 Tour Eiffel 75007
 Tour Montparnasse 75015</textarea>
 			</label>
-			<label>Mandatory by day (day|place1,place2)<textarea id="mandatoryByDay" style="height:6rem">
+			<label>Mandatory by day (day|place1,place2)<textarea id="mandatory" style="height:6rem">
 1|Tour Eiffel 75007,Montmartre 75018
 2|Musée du Louvre 75001
 3|Château de Versailles 78000</textarea>
@@ -60,8 +60,8 @@ Obélisque de Louxor 75008|73 Pl. de la Concorde 75008 Paris</textarea>
 			<select id="day" class="hidden"></select>
 			<button id="plan" type="button">Plan</button>
 		</form>
-		<article id="listView"></article>
-		<div id="mapContainer" class="hidden"><iframe id="mapFrame"></iframe></div>
+		<article id="list"></article>
+		<div id="map" class="hidden"><iframe id="mapFrame"></iframe></div>
 	</section>
 	<script src="script.js" defer></script>
 </body>

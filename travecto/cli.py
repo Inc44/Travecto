@@ -60,7 +60,7 @@ def main() -> None:
 		help="Hide progress bars.",
 	)
 	arg_parser.add_argument(
-		"--interactive",
+		"--server",
 		action="store_true",
 		help="Run the server for interactive route planning",
 	)

@@ -224,7 +224,8 @@ def plan_route(
 	mode: Optional[str] = None,
 	quiet: bool = False,
 ) -> None:
-	for info in compute_routes(city_name, city_cfg, workers, settings, mode, quiet):
+	routes = compute_routes(city_name, city_cfg, workers, settings, mode, quiet)
+	for info in routes:
 		print_route(
 			info.header, info.places, info.distance_matrix, info.route, info.speed_kmh
 		)

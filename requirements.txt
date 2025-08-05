@@ -1,7 +1,9 @@
 aiohttp==3.12.15
+fastapi==0.116.1
 folium==0.20.0
 ortools==9.14.6206
 python-dotenv==1.1.1
-toml==0.10.2
 tenacity==9.1.2
+toml==0.10.2
 tqdm==4.67.1
+uvicorn==0.35.0

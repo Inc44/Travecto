@@ -89,7 +89,9 @@ def calculate_average_speed_kmh(settings: Dict[str, Any]) -> float:
 	)
 
 
-def calculate_time_minutes(distance_m: int, speed_kmh: float) -> float:
+def calculate_time_minutes(distance_m: int, speed_kmh: Optional[float]) -> float:
+	if not speed_kmh:
+		return 0.0
 	return distance_m / 1000 / speed_kmh * 60
 
 

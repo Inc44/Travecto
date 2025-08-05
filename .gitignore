@@ -7,4 +7,6 @@ directions_cache.json
 dist/**/*
 geocode_cache.json
 routes/**/*
+server.txt
 travecto.egg-info/**/*
+web/routes/**/*

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import uvicorn
 
 from .config_loader import load_config
 from .planner import plan_route
@@ -58,8 +59,15 @@ def main() -> None:
 		action="store_true",
 		help="Hide progress bars.",
 	)
+	arg_parser.add_argument(
+		"--interactive",
+		action="store_true",
+		help="Run the server for interactive route planning",
+	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
+	if args.server:
+		uvicorn.run("travecto.server:app")
 	config = load_config(args.input)
 	settings = config.get("settings", {})
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY") or settings.get(

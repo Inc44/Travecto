@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import folium
+from folium.plugins import LocateControl
 
 from .directions import directions_polyline
 from .planner import RouteInfo, compute_routes
@@ -69,6 +70,7 @@ def create_map(
 			show=False,
 		).add_to(folium_map)
 	folium.LayerControl(position="topright").add_to(folium_map)
+	LocateControl(auto_start=False, flyTo=True).add_to(folium_map)
 	sw, ne = calculate_bounding_box(path_coords)
 	folium_map.fit_bounds([sw, ne])
 	folium.PolyLine(path_coords, color="blue", weight=4, opacity=0.75).add_to(

@@ -162,7 +162,7 @@ def compute_routes(
 		quiet,
 	)
 	save_geocode_cache(geocode_cache, geocode_cache_path)
-	speed_kmh = city_cfg.get("avg_speed_kmh", calculate_average_speed_kmh(settings))
+	speed_kmh = city_cfg.get("avg_speed_kmh") or calculate_average_speed_kmh(settings)
 	time_limit_s = settings.get("tsp_time_limit_s", 1)
 	routing_mode = mode or city_cfg.get("mode", "direct")
 	mandatory = city_cfg.get("mandatory_by_day", {})

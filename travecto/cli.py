@@ -67,7 +67,8 @@ def main() -> None:
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 	if args.server:
-		uvicorn.run("travecto.server:app")
+		uvicorn.run("travecto.server:app", root_path="/travecto")
+		return
 	config = load_config(args.input)
 	settings = config.get("settings", {})
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY") or settings.get(

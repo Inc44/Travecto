@@ -67,7 +67,7 @@ def main() -> None:
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 	if args.server:
-		uvicorn.run("travecto.server:app", root_path="/travecto")
+		uvicorn.run("travecto.server:app")
 		return
 	config = load_config(args.input)
 	settings = config.get("settings", {})

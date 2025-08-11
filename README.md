@@ -35,15 +35,60 @@ Optimizes travel routes using [Google Maps Geocoding API](https://developers.goo
 
 ## 🚀 Installation
 
+### With PyPI
+
+```bash
+pip install travecto
+```
+
+### With pipx
+
+```bash
+pipx install travecto
+```
+
+### With Conda
+
 ```bash
 conda create -n travecto python=3.9 -y # up to 3.13
 conda activate travecto
+pip install travecto
+```
+
+### From Source
+
+```bash
 git clone https://github.com/Inc44/Travecto.git
 cd Travecto
+```
+
+To install the package:
+
+```bash
+pip install .
+```
+
+To install only the dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-_Run the program using_ `python -m travecto.cli` _(or_ `python -OO travecto/cli.py`_)._
+_If you install only the dependencies, run the program using_ `python -m travecto.cli` _(or_ `python -OO travecto/cli.py`_) instead of the `travecto` command._
+
+## 🛠️ Build from Source
+
+```bash
+pip install build
+python -m build
+```
+
+## 📦 Publish
+
+```bash
+pip install twine
+twine upload dist/*
+```
 
 ## 🧾 Configuration
 

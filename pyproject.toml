@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "travecto"
+version = "2025.8.11"
+dependencies = [
+	"aiohttp==3.12.15",
+	"fastapi==0.116.1",
+	"folium==0.20.0",
+	"ortools==9.14.6206",
+	"python-dotenv==1.1.1",
+	"tenacity==9.1.2",
+	"toml==0.10.2",
+	"tqdm==4.67.1",
+	"uvicorn==0.35.0",
+]
+requires-python = ">=3.9"
+authors = [{ name = "Inc44" }]
+description = "Optimizes travel routes using Google Maps Geocoding API and the traveling salesman problem solver from OR-Tools."
+readme = "README.md"
+license = "MIT"
+classifiers = [
+	"Operating System :: OS Independent",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Programming Language :: Python :: 3.12",
+	"Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Repository = "https://github.com/Inc44/Travecto.git"
+Issues = "https://github.com/Inc44/Travecto/issues"
+
+[project.scripts]
+travecto = "travecto.cli:main"
+
+[tool.setuptools]
+packages = ["travecto"]

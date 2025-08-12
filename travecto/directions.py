@@ -124,28 +124,6 @@ def build_cache_key(
 	return f"{lat1},{lng1}|{lat2},{lng2}|{mode}"
 
 
-def decode_google_maps_polyline(encoded_line: str) -> List[Tuple[float, float]]:
-	def decode_value() -> int:
-		nonlocal idx
-		value = bit_shift = 0
-		while True:
-			encoded_byte = ord(encoded_line[idx]) - 63
-			idx += 1
-			value |= (encoded_byte & 0x1F) << bit_shift
-			bit_shift += 5
-			if encoded_byte < 0x20:
-				break
-		return ~(value >> 1) if value & 1 else value >> 1
-
-	idx = lat = lng = 0
-	coords = []
-	while idx < len(encoded_line):
-		lat += decode_value()
-		lng += decode_value()
-		coords.append((lat / 1e5, lng / 1e5))
-	return coords
-
-
 async def fetch_google_maps_directions_polyline(
 	origin: Tuple[float, float],
 	destination: Tuple[float, float],
@@ -157,8 +135,22 @@ async def fetch_google_maps_directions_polyline(
 		route = await fetch_google_maps_directions(
 			origin, destination, mode, session, http_timeout_s, google_maps_api_key
 		)
-		encoded_polyline = route["overview_polyline"]["points"]
-		return decode_google_maps_polyline(encoded_polyline)
+		coords: List[Tuple[float, float]] = []
+		for leg in route.get("legs", []):
+			for step in leg.get("steps", []):
+				start_location = step.get("start_location")
+				end_location = step.get("end_location")
+				if start_location:
+					coord = (start_location["lat"], start_location["lng"])
+					if not coords or coords[-1] != coord:
+						coords.append(coord)
+				if end_location:
+					coord = (end_location["lat"], end_location["lng"])
+					if not coords or coords[-1] != coord:
+						coords.append(coord)
+		if not coords:
+			coords = [origin, destination]
+		return coords
 
 
 def directions_polyline(

@@ -45,10 +45,10 @@ async def fetch_google_maps_location(
 	)
 	async with session.get(url, timeout=http_timeout_s) as resp:
 		payload = await resp.json()
-		if payload["status"] != "OK":
-			raise RuntimeError(f"Geocode failed for '{query}': {payload['status']}")
-		location = payload["results"][0]["geometry"]["location"]
-		return location["lat"], location["lng"]
+	if payload["status"] != "OK":
+		raise RuntimeError(f"Geocode failed for '{query}': {payload['status']}")
+	location = payload["results"][0]["geometry"]["location"]
+	return location["lat"], location["lng"]
 
 
 async def geocode_google_maps_location(
@@ -83,7 +83,7 @@ async def geocode_google_maps_location(
 				return name, coords
 			except Exception as e:
 				log.debug("Query '%s' failed: %s", query, e)
-				await asyncio.sleep(probe_delay_s)
+		await asyncio.sleep(probe_delay_s)
 	raise RuntimeError(f"Geocoding failed for {name}")
 
 
@@ -130,7 +130,7 @@ async def geocode_google_maps_locations(
 				results.append(result)
 				pbar.update()
 			pbar.close()
-		return dict(results)
+	return dict(results)
 
 
 def geocode(

@@ -43,9 +43,9 @@ async def fetch_google_maps_directions(
 	)
 	async with session.get(url, timeout=http_timeout_s) as resp:
 		payload = await resp.json()
-		if payload["status"] != "OK":
-			raise RuntimeError(f"Directions failed: {payload['status']}")
-		return payload["routes"][0]
+	if payload["status"] != "OK":
+		raise RuntimeError(f"Directions failed: {payload['status']}")
+	return payload["routes"][0]
 
 
 def directions_distance_matrix(
@@ -135,22 +135,22 @@ async def fetch_google_maps_directions_polyline(
 		route = await fetch_google_maps_directions(
 			origin, destination, mode, session, http_timeout_s, google_maps_api_key
 		)
-		coords: List[Tuple[float, float]] = []
-		for leg in route.get("legs", []):
-			for step in leg.get("steps", []):
-				start_location = step.get("start_location")
-				end_location = step.get("end_location")
-				if start_location:
-					coord = (start_location["lat"], start_location["lng"])
-					if not coords or coords[-1] != coord:
-						coords.append(coord)
-				if end_location:
-					coord = (end_location["lat"], end_location["lng"])
-					if not coords or coords[-1] != coord:
-						coords.append(coord)
-		if not coords:
-			coords = [origin, destination]
-		return coords
+	coords: List[Tuple[float, float]] = []
+	for leg in route.get("legs", []):
+		for step in leg.get("steps", []):
+			start_location = step.get("start_location")
+			end_location = step.get("end_location")
+			if start_location:
+				coord = (start_location["lat"], start_location["lng"])
+				if not coords or coords[-1] != coord:
+					coords.append(coord)
+			if end_location:
+				coord = (end_location["lat"], end_location["lng"])
+				if not coords or coords[-1] != coord:
+					coords.append(coord)
+	if not coords:
+		coords = [origin, destination]
+	return coords
 
 
 def directions_polyline(

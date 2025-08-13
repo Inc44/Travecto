@@ -145,7 +145,7 @@ def compute_routes(
 	mode: Optional[str] = None,
 	quiet: bool = False,
 ) -> List[RouteInfo]:
-	geocode_cache_path = Path(settings.get("cache_file", "geocode_cache.json"))
+	geocode_cache_path = Path(settings.get("geocode_cache_file", "geocode_cache.json"))
 	geocode_cache = load_geocode_cache(geocode_cache_path)
 	home = city_cfg["home"]
 	places = list(dict.fromkeys(city_cfg.get("places", [])))

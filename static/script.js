@@ -51,6 +51,38 @@ document.getElementById('view')
 	.addEventListener('change', updateView);
 document.getElementById('day')
 	.addEventListener('change', event => showMap(event.target.value));
+['home', 'places', 'mandatory', 'altAddresses'].forEach(id =>
+{
+	document.getElementById(id)
+		.addEventListener('input', event => localStorage.setItem(id, event.target.value));
+});
+document.getElementById('mode')
+	.addEventListener('change', event => localStorage.setItem('mode', event.target.value));
+document.getElementById('view')
+	.addEventListener('change', event => localStorage.setItem('view', event.target.value));
+
+function restoreForm()
+{
+	const home = localStorage.getItem('home');
+	if (home !== null) document.getElementById('home')
+		.value = home;
+	const places = localStorage.getItem('places');
+	if (places !== null) document.getElementById('places')
+		.value = places;
+	const mandatory = localStorage.getItem('mandatory');
+	if (mandatory !== null) document.getElementById('mandatory')
+		.value = mandatory;
+	const altAddresses = localStorage.getItem('altAddresses');
+	if (altAddresses !== null) document.getElementById('altAddresses')
+		.value = altAddresses;
+	const mode = localStorage.getItem('mode');
+	if (mode !== null) document.getElementById('mode')
+		.value = mode;
+	const view = localStorage.getItem('view');
+	if (view !== null) document.getElementById('view')
+		.value = view;
+	updateView();
+}
 async function plan()
 {
 	document.getElementById('list')
@@ -128,3 +160,4 @@ async function plan()
 }
 document.getElementById('plan')
 	.addEventListener('click', plan);
+restoreForm()

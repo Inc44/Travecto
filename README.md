@@ -134,7 +134,13 @@ echo $THUNDERFOREST_API_KEY
 Calculate optimal routes for all configured cities:
 
 ```bash
-python -m travecto.cli
+python -m travecto
+```
+
+Same but loading .env file:
+
+```bash
+python -m dotenv -f /path/to/.env run -- travecto
 ```
 
 ### Generate Interactive Maps
@@ -142,7 +148,7 @@ python -m travecto.cli
 Create HTML maps showing optimized routes:
 
 ```bash
-python -m travecto.cli --maps
+python -m travecto --maps
 ```
 
 ### Custom Configuration
@@ -150,7 +156,7 @@ python -m travecto.cli --maps
 Use custom configuration file:
 
 ```bash
-python -m travecto.cli --input config.toml
+python -m travecto --input config.toml
 ```
 
 ### Custom Output Directory
@@ -158,7 +164,7 @@ python -m travecto.cli --input config.toml
 Save maps to specific directory:
 
 ```bash
-python -m travecto.cli --maps --output html
+python -m travecto --maps --output html
 ```
 
 ## 🎨 Command-Line Arguments

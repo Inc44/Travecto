@@ -1,10 +1,9 @@
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools>=77.0.3", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
-
 [project]
 name = "travecto"
-version = "2025.8.11"
+dynamic = ["version"]
 dependencies = [
 	"aiohttp==3.12.15",
 	"fastapi==0.116.1",
@@ -40,3 +39,6 @@ travecto = "travecto.cli:main"
 
 [tool.setuptools]
 packages = ["travecto"]
+
+[tool.setuptools.package-data]
+travecto = ["demo.toml"]

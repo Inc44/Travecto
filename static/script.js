@@ -40,12 +40,13 @@ function updateView()
 	const list = document.getElementById('list');
 	const map = document.getElementById('map');
 	const day = document.getElementById('day');
+	const mandatory = lastPlan.routes.some(route => route.day != null);
 	list.classList.toggle('hidden', view !== 'list');
 	map.classList.toggle('hidden', view !== 'map');
-	day.classList.toggle('hidden', view !== 'map');
+	day.classList.toggle('hidden', !(view === 'map' && mandatory));
 	if (!lastPlan) return;
 	if (view === 'list') renderList(lastPlan);
-	else showMap(day.value);
+	else showMap(mandatory ? day.value : 0);
 }
 document.getElementById('view')
 	.addEventListener('change', updateView);

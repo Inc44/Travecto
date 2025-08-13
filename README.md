@@ -96,18 +96,35 @@ Set environment variable:
 
 ```powershell
 setx /M GOOGLE_MAPS_API_KEY your_api_key
+setx /M THUNDERFOREST_API_KEY your_api_key
 ```
 
-Or create a `.env` file:
+For Linux/macOS:
+
+```bash
+echo 'export GOOGLE_MAPS_API_KEY="your_api_key"' >> ~/.bashrc # or ~/.zshrc
+echo 'export THUNDERFOREST_API_KEY="your_api_key"' >> ~/.bashrc # or ~/.zshrc
+```
+
+Or create a `.env` file or modify /etc/environment:
 
 ```
 GOOGLE_MAPS_API_KEY=your_api_key
+THUNDERFOREST_API_KEY=your_api_key
 ```
 
 Check by restarting the terminal and using:
 
 ```cmd
 echo %GOOGLE_MAPS_API_KEY%
+echo %THUNDERFOREST_API_KEY%
+```
+
+For Linux/macOS:
+
+```bash
+echo $GOOGLE_MAPS_API_KEY
+echo $THUNDERFOREST_API_KEY
 ```
 
 ## 📖 Usage Examples

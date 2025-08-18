@@ -26,6 +26,19 @@ def save_directions_cache(cache: Dict[str, int], path: Path) -> None:
 	)
 
 
+def load_polyline_cache(path: Path) -> Dict[str, List[List[float]]]:
+	if path.exists():
+		return json.loads(path.read_text(encoding="utf-8"))
+	return {}
+
+
+def save_polyline_cache(cache: Dict[str, List[List[float]]], path: Path) -> None:
+	path.write_text(
+		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
+		encoding="utf-8",
+	)
+
+
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)
 async def fetch_google_maps_directions(
 	origin: Tuple[float, float],
@@ -65,7 +78,7 @@ def directions_distance_matrix(
 	cache_misses = []
 	for i in range(size):
 		for j in range(i + 1, size):
-			cache_key = build_cache_key(coords[i], coords[j], mode)
+			cache_key = build_direction_cache_key(coords[i], coords[j], mode)
 			if cache_key in directions_cache:
 				distance = directions_cache[cache_key]
 				distance_matrix[i][j] = distance_matrix[j][i] = distance
@@ -111,12 +124,14 @@ def directions_distance_matrix(
 
 	for i, j, distance in asyncio.run(fetch_missing_directions()):
 		distance_matrix[i][j] = distance_matrix[j][i] = distance
-		directions_cache[build_cache_key(coords[i], coords[j], mode)] = distance
+		directions_cache[build_direction_cache_key(coords[i], coords[j], mode)] = (
+			distance
+		)
 	save_directions_cache(directions_cache, directions_cache_path)
 	return distance_matrix
 
 
-def build_cache_key(
+def build_direction_cache_key(
 	coord1: Tuple[float, float], coord2: Tuple[float, float], mode: str
 ) -> str:
 	lat1, lng1 = coord1

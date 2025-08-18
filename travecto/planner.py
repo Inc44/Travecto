@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import base64
+import hashlib
+import json
 import logging
 import math
 from dataclasses import dataclass
@@ -24,6 +27,13 @@ class RouteInfo:
 	header: str
 	distance_matrix: List[List[int]]
 	mode: str
+
+
+def hash_json(obj: Any) -> str:
+	payload = json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False)
+	hashed = hashlib.sha256(payload.encode("utf-8")).digest()
+	encoded = base64.urlsafe_b64encode(hashed).decode("ascii")
+	return encoded[:11]
 
 
 def haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> int:
@@ -137,6 +147,30 @@ def build_distance_matrix(
 	)
 
 
+def load_tsp_cache(path: Path) -> Dict[str, List[int]]:
+	if path.exists():
+		return json.loads(path.read_text(encoding="utf-8"))
+	return {}
+
+
+def save_tsp_cache(cache: Dict[str, List[int]], path: Path) -> None:
+	path.write_text(
+		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
+		encoding="utf-8",
+	)
+
+
+def build_tsp_cache_key(
+	distance_matrix: List[List[int]],
+	start_idx: int,
+) -> str:
+	obj = {
+		"distance_matrix": distance_matrix,
+		"start_idx": start_idx,
+	}
+	return hash_json(obj)
+
+
 def compute_routes(
 	city_name: str,
 	city_cfg: Dict[str, Any],
@@ -167,6 +201,8 @@ def compute_routes(
 	routing_mode = mode or city_cfg.get("mode", "direct")
 	mandatory = city_cfg.get("mandatory_by_day", {})
 	routes = []
+	tsp_cache_path = Path(settings.get("tsp_cache_file", "tsp_cache.json"))
+	tsp_cache = load_tsp_cache(tsp_cache_path)
 	if mandatory:
 		days = assign_days(coords, mandatory, home)
 		for day_idx in sorted(days):
@@ -176,7 +212,13 @@ def compute_routes(
 			distance_matrix = build_distance_matrix(
 				day_places, coords, routing_mode, settings, quiet
 			)
-			route = tsp(distance_matrix, day_places.index(home), workers, time_limit_s)
+			start_idx = day_places.index(home)
+			cache_key = build_tsp_cache_key(distance_matrix, start_idx)
+			if cache_key in tsp_cache:
+				route = tsp_cache[cache_key]
+			else:
+				route = tsp(distance_matrix, start_idx, workers, time_limit_s)
+				tsp_cache[cache_key] = route
 			header = (
 				f"\n{city_name.capitalize()} - Day {day_idx}"
 				f"\nMust: {', '.join(mandatory[day_idx])}"
@@ -198,7 +240,13 @@ def compute_routes(
 		distance_matrix = build_distance_matrix(
 			places, coords, routing_mode, settings, quiet
 		)
-		route = tsp(distance_matrix, places.index(home), workers, time_limit_s)
+		start_idx = places.index(home)
+		cache_key = build_tsp_cache_key(distance_matrix, start_idx)
+		if cache_key in tsp_cache:
+			route = tsp_cache[cache_key]
+		else:
+			route = tsp(distance_matrix, start_idx, workers, time_limit_s)
+			tsp_cache[cache_key] = route
 		header = f"\n{city_name.upper()}"
 		routes.append(
 			RouteInfo(
@@ -213,6 +261,7 @@ def compute_routes(
 				routing_mode,
 			)
 		)
+	save_tsp_cache(tsp_cache, tsp_cache_path)
 	return routes
 
 

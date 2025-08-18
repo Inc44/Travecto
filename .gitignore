@@ -1,13 +1,11 @@
 **/__pycache__/**/*
+*.json
 .env
 TODO.md
 build/**/*
 config.toml
 demo.md
-directions_cache.json
 dist/**/*
-geocode_cache.json
 routes/**/*
 static/routes/**/*
 travecto.egg-info/**/*
-web/routes/**/*

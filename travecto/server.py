@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -35,7 +36,9 @@ class PlanRequest(BaseModel):
 
 def hash_json(obj: Any) -> str:
 	payload = json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False)
-	return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:11]
+	hashed = hashlib.sha256(payload.encode("utf-8")).digest()
+	encoded = base64.urlsafe_b64encode(hashed).decode("ascii")
+	return encoded[:11]
 
 
 def render_map(

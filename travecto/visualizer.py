@@ -8,7 +8,12 @@ from typing import Any, Dict, List, Optional, Tuple
 import folium
 from folium.plugins import LocateControl
 
-from .directions import directions_polyline
+from .directions import (
+	directions_polyline,
+	build_direction_cache_key,
+	load_polyline_cache,
+	save_polyline_cache,
+)
 from .planner import RouteInfo, compute_routes
 
 EARTH_RADIUS_M = 6_371_008
@@ -101,15 +106,27 @@ def build_path(
 	if mode == "direct":
 		return coords
 	http_timeout_s = settings.get("http_timeout_s", 6)
+	polyline_cache_path = Path(
+		settings.get("polyline_cache_file", "polyline_cache.json")
+	)
+	polyline_cache = load_polyline_cache(polyline_cache_path)
 	path = []
 	for i in range(len(coords) - 1):
-		segment = directions_polyline(coords[i], coords[i + 1], mode, http_timeout_s)
+		cache_key = build_direction_cache_key(coords[i], coords[i + 1], mode)
+		if cache_key in polyline_cache:
+			segment = polyline_cache[cache_key]
+		else:
+			segment = directions_polyline(
+				coords[i], coords[i + 1], mode, http_timeout_s
+			)
+			polyline_cache[cache_key] = segment
 		if not segment:
 			continue
 		if path:
 			path.extend(segment[1:])
 		else:
 			path.extend(segment)
+	save_polyline_cache(polyline_cache, polyline_cache_path)
 	return path or coords
 
 
@@ -123,14 +140,6 @@ def visualize_route(
 	quiet: bool = False,
 ) -> None:
 	for info in compute_routes(city_name, city_cfg, workers, settings, mode, quiet):
-		places, marker_coords = extract_places_coords(info)
-		path_coords = build_path(marker_coords, info.mode, settings)
-		folium_map = create_map(
-			path_coords,
-			marker_coords,
-			places,
-			settings.get("thunderforest_api_key", ""),
-		)
 		header = city_name.capitalize()
 		if info.day_idx is not None:
 			header += f" Day {info.day_idx}"
@@ -138,5 +147,14 @@ def visualize_route(
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)
 		output_path = output_dir_path / filename
-		folium_map.save(output_path)
+		if not output_path.exists():
+			places, marker_coords = extract_places_coords(info)
+			path_coords = build_path(marker_coords, info.mode, settings)
+			folium_map = create_map(
+				path_coords,
+				marker_coords,
+				places,
+				settings.get("thunderforest_api_key", ""),
+			)
+			folium_map.save(output_path)
 		webbrowser.open(output_path.as_uri())

@@ -178,6 +178,19 @@ async function plan()
 	}
 }
 
+function showCopied()
+{
+	const btn = document.getElementById('share');
+	btn.textContent = 'Link copied';
+	btn.disabled = true;
+	clearTimeout(btn.timeout);
+	btn.timeout = setTimeout(() =>
+	{
+		btn.disabled = false;
+		btn.textContent = "Share";
+	}, 3000);
+}
+
 function share()
 {
 	const url = new URL(window.location.href);
@@ -195,7 +208,8 @@ function share()
 	params.set('view', document.getElementById('view')
 		.value);
 	url.search = params.toString();
-	navigator.clipboard.writeText(url.toString());
+	navigator.clipboard.writeText(url.toString())
+		.then(() => showCopied());
 }
 document.getElementById('plan')
 	.addEventListener('click', plan);

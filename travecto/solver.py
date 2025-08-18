@@ -30,8 +30,7 @@ def tsp(
 		routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
 	)
 	search_params.time_limit.FromSeconds(time_limit_s)
-	if hasattr(search_params, "num_search_workers"):
-		search_params.num_search_workers = workers
+	search_params.sat_parameters.num_search_workers = workers
 	solution = routing_model.SolveWithParameters(search_params)
 	if solution is None:
 		raise RuntimeError("TSP solver failed to find a solution")

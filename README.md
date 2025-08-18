@@ -202,6 +202,7 @@ Not yet found.
 - [ ] **Periodic Stops**: Restaurant and home stops.
 - [ ] **Target Time**: Opening, closing, and visit windows.
 - [ ] **Multi-Objective Optimization**: Enable optimization for factors beyond distance, such as opening hours, crowd levels, and personal preferences.
+- [ ] **[routing_parameters_pb.jl](https://github.com/google/or-tools/blob/stable/ortools/julia/ORToolsGenerated.jl/src/genproto/operations_research/routing_parameters_pb.jl)**: Explore the configuration available for `search_params`.
 - [ ] **More Maps**: Topology, cycling, and additional layers.
 - [ ] **Security, Abuse Prevention, Quota Handling**.
 - [ ] **Hide Internal Functions**: `__all__` or underscore prefix.

@@ -191,6 +191,7 @@ Not yet found.
 - The transportation model assumes a uniform Metro/walking mix, which may not reflect actual city-specific conditions.
 - OR-Tools TSP solver may not find globally optimal solutions for very large datasets within time limits.
 - If you don't like the current selection of tile providers for Map, Satellite, and Transport, or they don't work for your region, modify the code by replacing them with others available at: [Leaflet Provider Demo](https://leaflet-extras.github.io/leaflet-providers/preview).
+- Serving pre-compressed `.br`, `.zstd`, `.gz`, and `.deflate` files on an Apache server is not possible because the Cloudflare proxy dynamically recompresses responses when [Automatic HTTPS Rewrites](https://developers.cloudflare.com/speed/optimization/content/compression) are used.
 
 ## 🚧 TODO
 

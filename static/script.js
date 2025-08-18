@@ -40,9 +40,9 @@ function updateView()
 	const list = document.getElementById('list');
 	const map = document.getElementById('map');
 	const day = document.getElementById('day');
-	const mandatory = lastPlan.routes.some(route => route.day != null);
-	list.classList.toggle('hidden', view !== 'list');
-	map.classList.toggle('hidden', view !== 'map');
+	const mandatory = lastPlan?.routes?.some(route => route.day != null);
+	list.classList.toggle('hidden', view !== 'list' && !!lastPlan);
+	map.classList.toggle('hidden', view !== 'map' || !lastPlan);
 	day.classList.toggle('hidden', !(view === 'map' && mandatory));
 	if (!lastPlan) return;
 	if (view === 'list') renderList(lastPlan);

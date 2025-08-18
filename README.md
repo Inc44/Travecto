@@ -190,13 +190,22 @@ Not yet found.
 - Geocoding heavily depends on Google Maps API quality and may fail for very obscure locations; therefore, adding a postal code at the end of the destination name or defining renaming patterns is recommended.
 - The transportation model assumes a uniform Metro/walking mix, which may not reflect actual city-specific conditions.
 - OR-Tools TSP solver may not find globally optimal solutions for very large datasets within time limits.
+- If you don't like the current selection of tile providers for Map, Satellite, and Transport, or they don't work for your region, modify the code by replacing them with others available at: [Leaflet Provider Demo](https://leaflet-extras.github.io/leaflet-providers/preview).
 
 ## 🚧 TODO
 
-- [ ] **Support Multiple Transportation Modes**: Add support for car, public transport, and walking-only routing with configurable speed parameters.
-- [ ] **Real-Time Transit Integration**: Replace haversine distance calculations with Google Directions API for accurate travel times, including traffic conditions.
-- [ ] **Interactive Configuration GUI**: Create a web interface for adding cities, places, and constraints without modifying configuration files.
+- [ ] **Original-Order Mode (No Optimization)**.
+- [ ] **Minimize-Time Mode**: Use minutes instead of km.
+- [ ] **Per-Mode Speeds**.
+- [ ] **Real-Time Transit Integration**.
+- [ ] **Mixed Transportation Modes**.
+- [ ] **Periodic Stops**: Restaurant and home stops.
+- [ ] **Target Time**: Opening, closing, and visit windows.
 - [ ] **Multi-Objective Optimization**: Enable optimization for factors beyond distance, such as opening hours, crowd levels, and personal preferences.
+- [ ] **More Maps**: Topology, cycling, and additional layers.
+- [ ] **Security, Abuse Prevention, Quota Handling**.
+- [ ] **Hide Internal Functions**: `__all__` or underscore prefix.
+- [ ] **Tests**.
 
 ## 🙏 Thanks
 

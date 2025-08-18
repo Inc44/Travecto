@@ -48,6 +48,12 @@ function updateView()
 	if (view === 'list') renderList(lastPlan);
 	else showMap(mandatory ? day.value : 0);
 }
+document.querySelector('h1')
+	.addEventListener('click', () =>
+	{
+		const isDarkMode = document.body.classList.toggle('dark');
+		localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+	});
 document.getElementById('view')
 	.addEventListener('change', updateView);
 document.getElementById('day')
@@ -82,6 +88,9 @@ function restoreForm()
 	const view = localStorage.getItem('view');
 	if (view !== null) document.getElementById('view')
 		.value = view;
+	const theme = localStorage.getItem('theme');
+	if (theme === 'dark') document.body.classList.add('dark');
+	else document.body.classList.remove('dark');
 	updateView();
 }
 async function plan()

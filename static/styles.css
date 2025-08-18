@@ -2,77 +2,78 @@
 	box-sizing: border-box;
 	margin: 0;
 }
-
+:root {
+	--bg: white;
+	--fg: black;
+}
 body {
+	background: var(--bg);
+	color: var(--fg);
 	font-family: monospace;
 	padding: 2rem;
 	line-height: 1.5;
 }
-
 h1 {
-	border: 0.25rem solid black;
+	border: 0.25rem solid var(--fg);
+	cursor: pointer;
 	display: inline-block;
 	font-size: 2rem;
 	padding: 0.5rem 1rem;
 }
-
 .layout {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 2rem;
 	margin-top: 2rem;
 }
-
 #controls {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 20rem;
 	gap: 1rem;
 }
-
 button,
 input,
 select,
 textarea {
-	border: 0.25rem solid black;
+	background: var(--bg);
+	border: 0.25rem solid var(--fg);
+	color: var(--fg);
 	font-family: inherit;
 	padding: 0.5rem;
 	width: 100%;
 }
-
 button {
-	background-color: black;
-	color: white;
+	background-color: var(--fg);
+	color: var(--bg);
 	cursor: pointer;
 	transition: color 0.3s, background-color 0.3s;
 }
-
 button:hover {
-	background-color: white;
-	color: black;
+	background-color: var(--bg);
+	color: var(--fg);
 }
-
 #list,
 #map {
 	flex: 1 1 20rem;
 }
-
 #mapFrame {
-	border: 0.25rem solid black;
+	border: 0.25rem solid var(--fg);
 	height: 37.5rem;
 	width: 100%;
 }
-
 .hidden {
 	display: none;
 }
-
 #list ol {
 	margin: 0.5rem 0 1rem 0;
 	padding-left: 1.5rem;
 }
-
 #list h2 {
-	border-bottom: 0.25rem solid black;
+	border-bottom: 0.25rem solid var(--fg);
 	padding-bottom: 0.25rem;
+}
+body.dark {
+	--bg: black;
+	--fg: white;
 }

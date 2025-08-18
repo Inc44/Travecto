@@ -70,28 +70,37 @@ document.getElementById('view')
 
 function restoreForm()
 {
-	const home = localStorage.getItem('home');
-	if (home !== null) document.getElementById('home')
-		.value = home;
-	const places = localStorage.getItem('places');
-	if (places !== null) document.getElementById('places')
-		.value = places;
-	const mandatory = localStorage.getItem('mandatory');
-	if (mandatory !== null) document.getElementById('mandatory')
-		.value = mandatory;
-	const altAddresses = localStorage.getItem('altAddresses');
-	if (altAddresses !== null) document.getElementById('altAddresses')
-		.value = altAddresses;
-	const mode = localStorage.getItem('mode');
-	if (mode !== null) document.getElementById('mode')
-		.value = mode;
-	const view = localStorage.getItem('view');
-	if (view !== null) document.getElementById('view')
-		.value = view;
+	const params = new URLSearchParams(window.location.search);
+	let hadParams = false;
+
+	function setValue(id)
+	{
+		const value = params.get(id);
+		if (value !== null)
+		{
+			document.getElementById(id)
+				.value = value;
+			localStorage.setItem(id, value);
+			hadParams = true;
+		}
+		else
+		{
+			const value = localStorage.getItem(id);
+			if (value !== null) document.getElementById(id)
+				.value = value;
+		}
+	}
+	setValue('home');
+	setValue('places');
+	setValue('mandatory');
+	setValue('altAddresses');
+	setValue('mode');
+	setValue('view');
 	const theme = localStorage.getItem('theme');
 	if (theme === 'dark') document.body.classList.add('dark');
 	else document.body.classList.remove('dark');
 	updateView();
+	if (hadParams) window.history.replaceState(null, '', window.location.pathname + window.location.hash);
 }
 async function plan()
 {
@@ -168,6 +177,28 @@ async function plan()
 		alert('Planning failed: ' + e.message);
 	}
 }
+
+function share()
+{
+	const url = new URL(window.location.href);
+	const params = url.searchParams;
+	params.set('home', document.getElementById('home')
+		.value.trim());
+	params.set('places', document.getElementById('places')
+		.value);
+	params.set('mandatory', document.getElementById('mandatory')
+		.value);
+	params.set('altAddresses', document.getElementById('altAddresses')
+		.value);
+	params.set('mode', document.getElementById('mode')
+		.value);
+	params.set('view', document.getElementById('view')
+		.value);
+	url.search = params.toString();
+	navigator.clipboard.writeText(url.toString());
+}
 document.getElementById('plan')
 	.addEventListener('click', plan);
+document.getElementById('share')
+	.addEventListener('click', share);
 restoreForm()

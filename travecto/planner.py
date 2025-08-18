@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import base64
-import hashlib
-import json
 import logging
 import math
 from dataclasses import dataclass
@@ -10,8 +7,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .directions import directions_distance_matrix
-from .geocoder import geocode, load_geocode_cache, save_geocode_cache
+from .geocoder import geocode
 from .solver import tsp
+from .utils import hash_json, load_json, save_json
 
 log = logging.getLogger(__name__)
 
@@ -27,13 +25,6 @@ class RouteInfo:
 	header: str
 	distance_matrix: List[List[int]]
 	mode: str
-
-
-def hash_json(obj: Any) -> str:
-	payload = json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False)
-	hashed = hashlib.sha256(payload.encode("utf-8")).digest()
-	encoded = base64.urlsafe_b64encode(hashed).decode("ascii")
-	return encoded[:11]
 
 
 def haversine_distance(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> int:
@@ -147,19 +138,6 @@ def build_distance_matrix(
 	)
 
 
-def load_tsp_cache(path: Path) -> Dict[str, List[int]]:
-	if path.exists():
-		return json.loads(path.read_text(encoding="utf-8"))
-	return {}
-
-
-def save_tsp_cache(cache: Dict[str, List[int]], path: Path) -> None:
-	path.write_text(
-		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
-		encoding="utf-8",
-	)
-
-
 def build_tsp_cache_key(
 	distance_matrix: List[List[int]],
 	start_idx: int,
@@ -180,7 +158,7 @@ def compute_routes(
 	quiet: bool = False,
 ) -> List[RouteInfo]:
 	geocode_cache_path = Path(settings.get("geocode_cache_file", "geocode_cache.json"))
-	geocode_cache = load_geocode_cache(geocode_cache_path)
+	geocode_cache = load_json(geocode_cache_path)
 	home = city_cfg["home"]
 	places = list(dict.fromkeys(city_cfg.get("places", [])))
 	if home not in places:
@@ -195,14 +173,14 @@ def compute_routes(
 		settings.get("probe_delay", 0.02),
 		quiet,
 	)
-	save_geocode_cache(geocode_cache, geocode_cache_path)
+	save_json(geocode_cache, geocode_cache_path)
 	speed_kmh = city_cfg.get("avg_speed_kmh") or calculate_average_speed_kmh(settings)
 	time_limit_s = settings.get("tsp_time_limit_s", 1)
 	routing_mode = mode or city_cfg.get("mode", "direct")
 	mandatory = city_cfg.get("mandatory_by_day", {})
 	routes = []
 	tsp_cache_path = Path(settings.get("tsp_cache_file", "tsp_cache.json"))
-	tsp_cache = load_tsp_cache(tsp_cache_path)
+	tsp_cache = load_json(tsp_cache_path)
 	if mandatory:
 		days = assign_days(coords, mandatory, home)
 		for day_idx in sorted(days):
@@ -261,7 +239,7 @@ def compute_routes(
 				routing_mode,
 			)
 		)
-	save_tsp_cache(tsp_cache, tsp_cache_path)
+	save_json(tsp_cache, tsp_cache_path)
 	return routes
 
 

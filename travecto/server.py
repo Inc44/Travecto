@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import base64
-import hashlib
-import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List
@@ -14,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from .planner import calculate_time_minutes, compute_routes
 from .visualizer import build_path, create_map, extract_places_coords
+from .utils import hash_json
 
 app = FastAPI(title="Travecto Server")
 
@@ -32,13 +30,6 @@ class PlanRequest(BaseModel):
 	config: CityConfig
 	workers: int = 32
 	settings: Dict[str, Any] = Field(default_factory=dict)
-
-
-def hash_json(obj: Any) -> str:
-	payload = json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False)
-	hashed = hashlib.sha256(payload.encode("utf-8")).digest()
-	encoded = base64.urlsafe_b64encode(hashed).decode("ascii")
-	return encoded[:11]
 
 
 def render_map(

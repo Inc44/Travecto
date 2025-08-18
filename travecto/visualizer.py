@@ -8,13 +8,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import folium
 from folium.plugins import LocateControl
 
-from .directions import (
-	directions_polyline,
-	build_direction_cache_key,
-	load_polyline_cache,
-	save_polyline_cache,
-)
+from .directions import directions_polyline, build_direction_cache_key
 from .planner import RouteInfo, compute_routes
+from .utils import load_json, save_json
 
 EARTH_RADIUS_M = 6_371_008
 EARTH_RADIUS_KM = EARTH_RADIUS_M / 1_000
@@ -109,7 +105,7 @@ def build_path(
 	polyline_cache_path = Path(
 		settings.get("polyline_cache_file", "polyline_cache.json")
 	)
-	polyline_cache = load_polyline_cache(polyline_cache_path)
+	polyline_cache = load_json(polyline_cache_path)
 	path = []
 	for i in range(len(coords) - 1):
 		cache_key = build_direction_cache_key(coords[i], coords[i + 1], mode)
@@ -126,7 +122,7 @@ def build_path(
 			path.extend(segment[1:])
 		else:
 			path.extend(segment)
-	save_polyline_cache(polyline_cache, polyline_cache_path)
+	save_json(polyline_cache, polyline_cache_path)
 	return path or coords
 
 

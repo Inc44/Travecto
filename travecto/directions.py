@@ -1,42 +1,16 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import aiohttp
 from tenacity import retry, stop_after_attempt, wait_exponential
+from .utils import load_json, save_json
 
 log = logging.getLogger(__name__)
-
-
-def load_directions_cache(path: Path) -> Dict[str, int]:
-	if path.exists():
-		return json.loads(path.read_text(encoding="utf-8"))
-	return {}
-
-
-def save_directions_cache(cache: Dict[str, int], path: Path) -> None:
-	path.write_text(
-		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
-		encoding="utf-8",
-	)
-
-
-def load_polyline_cache(path: Path) -> Dict[str, List[List[float]]]:
-	if path.exists():
-		return json.loads(path.read_text(encoding="utf-8"))
-	return {}
-
-
-def save_polyline_cache(cache: Dict[str, List[List[float]]], path: Path) -> None:
-	path.write_text(
-		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
-		encoding="utf-8",
-	)
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)
@@ -72,7 +46,7 @@ def directions_distance_matrix(
 	google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
 	if not google_maps_api_key:
 		raise RuntimeError("GOOGLE_MAPS_API_KEY environment variable missing")
-	directions_cache = load_directions_cache(directions_cache_path)
+	directions_cache = load_json(directions_cache_path)
 	size = len(coords)
 	distance_matrix = [[0] * size for _ in range(size)]
 	cache_misses = []
@@ -127,7 +101,7 @@ def directions_distance_matrix(
 		directions_cache[build_direction_cache_key(coords[i], coords[j], mode)] = (
 			distance
 		)
-	save_directions_cache(directions_cache, directions_cache_path)
+	save_json(directions_cache, directions_cache_path)
 	return distance_matrix
 
 

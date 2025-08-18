@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 import unicodedata
-from pathlib import Path
 from typing import Dict, List, Tuple
 
 import aiohttp
@@ -17,19 +15,6 @@ log = logging.getLogger(__name__)
 def strip_accents(text: str) -> str:
 	normalized_text = unicodedata.normalize("NFKD", text)
 	return "".join(char for char in normalized_text if not unicodedata.combining(char))
-
-
-def load_geocode_cache(path: Path) -> Dict[str, Tuple[float, float]]:
-	if path.exists():
-		return json.loads(path.read_text(encoding="utf-8"))
-	return {}
-
-
-def save_geocode_cache(cache: Dict[str, Tuple[float, float]], path: Path) -> None:
-	path.write_text(
-		json.dumps(cache, indent="\t", sort_keys=True, ensure_ascii=False),
-		encoding="utf-8",
-	)
 
 
 @retry(wait=wait_exponential(min=1, max=30), stop=stop_after_attempt(5), reraise=True)

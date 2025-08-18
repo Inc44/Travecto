@@ -12,6 +12,7 @@ body {
 	font-family: monospace;
 	padding: 2rem;
 	line-height: 1.5;
+	transition: background-color 0.3s, color 0.3s;
 }
 h1 {
 	border: 0.25rem solid var(--fg);
@@ -19,6 +20,7 @@ h1 {
 	display: inline-block;
 	font-size: 2rem;
 	padding: 0.5rem 1rem;
+	transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 .layout {
 	display: flex;
@@ -41,13 +43,14 @@ textarea {
 	color: var(--fg);
 	font-family: inherit;
 	padding: 0.5rem;
+	transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 	width: 100%;
 }
 button {
 	background-color: var(--fg);
 	color: var(--bg);
 	cursor: pointer;
-	transition: color 0.3s, background-color 0.3s;
+	transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 button:hover {
 	background-color: var(--bg);
@@ -60,6 +63,7 @@ button:hover {
 #mapFrame {
 	border: 0.25rem solid var(--fg);
 	height: 37.5rem;
+	transition: border-color 0.3s;
 	width: 100%;
 }
 .hidden {
@@ -72,6 +76,7 @@ button:hover {
 #list h2 {
 	border-bottom: 0.25rem solid var(--fg);
 	padding-bottom: 0.25rem;
+	transition: border-color 0.3s;
 }
 body.dark {
 	--bg: black;

@@ -21,6 +21,7 @@ def load_json(path: Path) -> Dict[str, Any]:
 
 
 def save_json(obj: Any, path: Path) -> None:
+	path.parent.mkdir(parents=True, exist_ok=True)
 	path.write_text(
 		json.dumps(obj, indent="\t", sort_keys=True, ensure_ascii=False),
 		encoding="utf-8",

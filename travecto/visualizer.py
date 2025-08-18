@@ -103,7 +103,7 @@ def build_path(
 		return coords
 	http_timeout_s = settings.get("http_timeout_s", 6)
 	polyline_cache_path = Path(
-		settings.get("polyline_cache_file", "polyline_cache.json")
+		settings.get("polyline_cache_file", "cache/polyline_cache.json")
 	)
 	polyline_cache = load_json(polyline_cache_path)
 	path = []

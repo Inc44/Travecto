@@ -8,14 +8,16 @@ metro_speed = 30
 walking_speed = 5
 
 # Geocoding and API settings
-geocode_cache_file = "geocode_cache.json"
-directions_cache_file = "directions_cache.json"
+geocode_cache_file = "cache/geocode_cache.json"
+directions_cache_file = "cache/directions_cache.json"
+polyline_cache_file = "cache/polyline_cache.json"
 rate_limit_qps = 50
 http_timeout_s = 6
 probe_delay = 0.02
 
 # TSP solver settings
 tsp_time_limit_s = 1
+tsp_cache_file = "cache/tsp_cache.json"
 
 # Optional Thunderforest API key for transport layer
 thunderforest_api_key = ""

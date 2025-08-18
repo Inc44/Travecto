@@ -124,7 +124,7 @@ def build_distance_matrix(
 	if mode == "direct":
 		return haversine_distance_matrix([coords[place] for place in places])
 	directions_cache_path = Path(
-		settings.get("directions_cache_file", "directions_cache.json")
+		settings.get("directions_cache_file", "cache/directions_cache.json")
 	)
 	rate_limit_qps = settings.get("rate_limit_qps", 50)
 	http_timeout_s = settings.get("http_timeout_s", 6)
@@ -157,7 +157,9 @@ def compute_routes(
 	mode: Optional[str] = None,
 	quiet: bool = False,
 ) -> List[RouteInfo]:
-	geocode_cache_path = Path(settings.get("geocode_cache_file", "geocode_cache.json"))
+	geocode_cache_path = Path(
+		settings.get("geocode_cache_file", "cache/geocode_cache.json")
+	)
 	geocode_cache = load_json(geocode_cache_path)
 	home = city_cfg["home"]
 	places = list(dict.fromkeys(city_cfg.get("places", [])))
@@ -179,7 +181,7 @@ def compute_routes(
 	routing_mode = mode or city_cfg.get("mode", "direct")
 	mandatory = city_cfg.get("mandatory_by_day", {})
 	routes = []
-	tsp_cache_path = Path(settings.get("tsp_cache_file", "tsp_cache.json"))
+	tsp_cache_path = Path(settings.get("tsp_cache_file", "cache/tsp_cache.json"))
 	tsp_cache = load_json(tsp_cache_path)
 	if mandatory:
 		days = assign_days(coords, mandatory, home)

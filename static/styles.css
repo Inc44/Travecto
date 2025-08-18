@@ -6,6 +6,10 @@
 	--bg: white;
 	--fg: black;
 }
+body.dark {
+	--bg: black;
+	--fg: white;
+}
 body {
 	background: var(--bg);
 	color: var(--fg);
@@ -21,18 +25,6 @@ h1 {
 	font-size: 2rem;
 	padding: 0.5rem 1rem;
 	transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-}
-.layout {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 2rem;
-	margin-top: 2rem;
-}
-#controls {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 20rem;
-	gap: 1rem;
 }
 button,
 input,
@@ -56,18 +48,24 @@ button:hover {
 	background-color: var(--bg);
 	color: var(--fg);
 }
-#list,
-#map {
-	flex: 1 1 20rem;
-}
-#mapFrame {
-	border: 0.25rem solid var(--fg);
-	height: 37.5rem;
-	transition: border-color 0.3s;
-	width: 100%;
+.layout {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2rem;
+	margin-top: 2rem;
 }
 .hidden {
 	display: none;
+}
+.dots::after {
+	content: "";
+	animation: loading 3s steps(1, end) infinite;
+}
+#controls {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 20rem;
+	gap: 1rem;
 }
 #list ol {
 	margin: 0.5rem 0 1rem 0;
@@ -78,7 +76,45 @@ button:hover {
 	padding-bottom: 0.25rem;
 	transition: border-color 0.3s;
 }
-body.dark {
-	--bg: black;
-	--fg: white;
+#list,
+#map {
+	flex: 1 1 20rem;
+}
+#mapViewport {
+	height: 45.5rem;
+	position: relative;
+}
+#mapLoading {
+	align-items: center;
+	border: 0.25rem solid var(--fg);
+	display: flex;
+	height: 45.5rem;
+	justify-content: center;
+	position: absolute;
+	transition: border-color 0.3s;
+	width: 100%;
+}
+#mapFrame {
+	border: 0.25rem solid var(--fg);
+	height: 45.5rem;
+	position: absolute;
+	transition: border-color 0.3s;
+	width: 100%;
+}
+@keyframes loading {
+	0% {
+		content: "";
+	}
+	25% {
+		content: ".";
+	}
+	50% {
+		content: "..";
+	}
+	75% {
+		content: "...";
+	}
+	100% {
+		content: "";
+	}
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import math
 import webbrowser
 from pathlib import Path
@@ -79,9 +80,10 @@ def create_map(
 		folium_map
 	)
 	for idx, (lat, lng) in enumerate(marker_coords):
+		tooltip = html.escape(f"{idx} {names[idx]}")
 		folium.Marker(
 			location=[lat, lng],
-			tooltip=f"{idx} {names[idx]}",
+			tooltip=tooltip,
 			icon=folium.Icon(color="red" if idx == 0 else "blue"),
 		).add_to(folium_map)
 	return folium_map

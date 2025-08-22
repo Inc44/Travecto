@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+from pathlib import Path
+
 import uvicorn
 
 from .config_loader import load_config
@@ -27,8 +29,8 @@ def main() -> None:
 	arg_parser.add_argument(
 		"-o",
 		"--output",
-		default="routes",
-		help="Directory for map files. Default: routes.",
+		default=str(Path.home() / ".cache/travecto/routes"),
+		help="Directory for map files. Default: ~/.cache/travecto/routes.",
 	)
 	arg_parser.add_argument(
 		"--maps",

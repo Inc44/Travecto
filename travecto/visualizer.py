@@ -103,9 +103,8 @@ def build_path(
 	if mode == "direct":
 		return coords
 	http_timeout_s = settings.get("http_timeout_s", 6)
-	polyline_cache_path = Path(
-		settings.get("polyline_cache_file", "cache/polyline_cache.json")
-	)
+	cache_dir = Path.home() / ".cache/travecto/cache"
+	polyline_cache_path = cache_dir / "polyline_cache.json"
 	polyline_cache = load_json(polyline_cache_path)
 	path = []
 	for i in range(len(coords) - 1):
@@ -132,7 +131,7 @@ def visualize_route(
 	city_cfg: Dict,
 	workers: int,
 	settings: Dict,
-	output_dir: str = "routes",
+	output_dir: str = str(Path.home() / ".cache/travecto/routes"),
 	mode: Optional[str] = None,
 	quiet: bool = False,
 ) -> None:

@@ -33,7 +33,9 @@ class PlanRequest(BaseModel):
 
 
 def render_map(
-	info, settings: Dict[str, Any], output_dir: str | Path = "static/routes"
+	info,
+	settings: Dict[str, Any],
+	output_dir: str = str(Path.home() / ".cache/travecto/routes"),
 ) -> str:
 	places = [info.places[i] for i in info.route]
 	filename = f"{hash_json({'places': places, 'mode': info.mode})}.html"
@@ -96,4 +98,13 @@ def plan(req: PlanRequest) -> JSONResponse:
 	return JSONResponse({"routes": payload})
 
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount(
+	"/routes",
+	StaticFiles(directory=str(Path.home() / ".cache/travecto/routes")),
+	name="routes",
+)
+app.mount(
+	"/",
+	StaticFiles(directory=str(Path(__file__).parent / "static"), html=True),
+	name="static",
+)

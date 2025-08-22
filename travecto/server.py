@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -14,6 +14,9 @@ from .visualizer import build_path, create_map, extract_places_coords
 from .utils import hash_json
 
 app = FastAPI(title="Travecto Server")
+output_dir = Path.home() / ".cache/travecto/routes"
+output_dir_path = Path(output_dir).expanduser().resolve()
+output_dir_path.mkdir(parents=True, exist_ok=True)
 
 
 class CityConfig(BaseModel):
@@ -21,7 +24,7 @@ class CityConfig(BaseModel):
 	places: List[str]
 	mandatory_by_day: Dict[str, List[str]] = Field(default_factory=dict)
 	alt_addresses: Dict[str, str] = Field(default_factory=dict)
-	mode: str = "direct"
+	mode: Literal["direct", "walking", "transit", "driving", "bicycling"] = "direct"
 	avg_speed_kmh: float | None = None
 
 

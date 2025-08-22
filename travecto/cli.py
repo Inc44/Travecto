@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import shutil
 from pathlib import Path
 
 import uvicorn
@@ -64,12 +65,28 @@ def main() -> None:
 	arg_parser.add_argument(
 		"--server",
 		action="store_true",
-		help="Run the server for interactive route planning",
+		help="Run the server for interactive route planning.",
+	)
+	arg_parser.add_argument(
+		"--reset",
+		choices=["cache", "routes", "all"],
+		help="Reset cache, routes, or all.",
 	)
 	args = arg_parser.parse_args()
 	logging.basicConfig(level=args.loglevel, format="%(levelname)s: %(message)s")
 	if args.server:
 		uvicorn.run("travecto.server:app")
+		return
+	if args.reset:
+		base_dir = Path.home() / ".cache/travecto"
+		if args.reset in ("cache", "all"):
+			cache_dir = base_dir / "cache"
+			if cache_dir.exists():
+				shutil.rmtree(cache_dir)
+		if args.reset in ("routes", "all"):
+			output_dir = base_dir / "routes"
+			if output_dir.exists():
+				shutil.rmtree(output_dir)
 		return
 	config = load_config(args.input)
 	settings = config.get("settings", {})
@@ -78,7 +95,7 @@ def main() -> None:
 	)
 	if not google_maps_api_key:
 		raise RuntimeError(
-			"google_maps_api_key setting or GOOGLE_MAPS_API_KEY environment variable is required"
+			"google_maps_api_key setting or GOOGLE_MAPS_API_KEY environment variable is required."
 		)
 	settings["google_maps_api_key"] = google_maps_api_key
 	thunderforest_api_key = os.getenv("THUNDERFOREST_API_KEY") or settings.get(

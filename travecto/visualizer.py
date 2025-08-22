@@ -141,7 +141,7 @@ def visualize_route(
 		header = city_name.capitalize()
 		if info.day_idx is not None:
 			header += f" Day {info.day_idx}"
-		filename = f"{header}.html"
+		filename = Path(f"{header}.html").name
 		output_dir_path = Path(output_dir).expanduser().resolve()
 		output_dir_path.mkdir(parents=True, exist_ok=True)
 		output_path = output_dir_path / filename

@@ -19,11 +19,22 @@ function renderList(resp)
 	list.innerHTML = '';
 	resp.routes.forEach(info =>
 	{
-		list.insertAdjacentHTML('beforeend', `
-			<h2>${info.day ? `Day ${info.day}` : 'Route'}</h2>
-			<ol>${info.places.map(place => `<li>${place}</li>`).join('')}</ol>
-			<p>${(info.distance_m / 1000).toFixed(1)} km | ${info.time_minutes} min</p>
-		`);
+		const h2 = document.createElement('h2');
+		h2.textContent = info.day ? `Day ${info.day}` : 'Route';
+		const ol = document.createElement('ol');
+		info.places.forEach(place =>
+		{
+			const li = document.createElement('li');
+			li.textContent = place;
+			ol.appendChild(li);
+		});
+		const p = document.createElement('p');
+		const distance_km = (info.distance_m / 1000)
+			.toFixed(1);
+		p.textContent = `${distance_km} km | ${info.time_minutes} min`;
+		list.appendChild(h2);
+		list.appendChild(ol);
+		list.appendChild(p);
 	});
 }
 

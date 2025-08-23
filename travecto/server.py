@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Literal
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .planner import calculate_time_minutes, compute_routes
 from .visualizer import build_path, create_map, extract_places_coords
@@ -26,6 +26,54 @@ class CityConfig(BaseModel):
 	alt_addresses: Dict[str, str] = Field(default_factory=dict)
 	mode: Literal["direct", "walking", "transit", "driving", "bicycling"] = "direct"
 	avg_speed_kmh: float | None = None
+
+	@field_validator("home")
+	@classmethod
+	def home_len(cls, home: str | None) -> str | None:
+		if home is not None and len(home) > 256:
+			raise ValueError("home must be at most 256 characters.")
+		return home
+
+	@field_validator("places")
+	@classmethod
+	def places_len(cls, places: List[str]) -> List[str]:
+		if len(places) > 256:
+			raise ValueError("places must have at most 256 items.")
+		for place in places:
+			if len(place) > 256:
+				raise ValueError("place must be at most 256 characters.")
+		return places
+
+	@field_validator("mandatory_by_day")
+	@classmethod
+	def mandatory_by_day_len(
+		cls, mandatory_by_day: Dict[str, List[str]]
+	) -> Dict[str, List[str]]:
+		if sum(len(lst) for lst in mandatory_by_day.values()) > 256:
+			raise ValueError("mandatory_by_day must have at most 256 items.")
+		for day, lst in mandatory_by_day.items():
+			for place in lst:
+				if len(place) > 256:
+					raise ValueError(
+						"mandatory_by_day place must be at most 256 characters."
+					)
+		return mandatory_by_day
+
+	@field_validator("alt_addresses")
+	@classmethod
+	def alt_addresses_len(cls, alt_addresses: Dict[str, str]) -> Dict[str, str]:
+		if len(alt_addresses) > 256:
+			raise ValueError("alt_addresses must have at most 256 items.")
+		for original, replacement in alt_addresses.items():
+			if len(original) > 256:
+				raise ValueError(
+					"alt_addresses original must be at most 256 characters."
+				)
+			if len(replacement) > 256:
+				raise ValueError(
+					"alt_addresses replacement must be at most 256 characters."
+				)
+		return alt_addresses
 
 
 class PlanRequest(BaseModel):

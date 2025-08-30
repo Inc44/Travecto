@@ -4,8 +4,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Literal
 
+import aiohttp
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
@@ -101,6 +102,7 @@ def render_map(
 			marker_coords,
 			places,
 			settings.get("thunderforest_api_key", ""),
+			use_proxy=True,
 		)
 		folium_map.save(output_path)
 	return f"/routes/{output_path.name}"
@@ -112,7 +114,7 @@ def plan(req: PlanRequest) -> JSONResponse:
 	if google_maps_api_key:
 		req.settings["google_maps_api_key"] = google_maps_api_key
 	if "google_maps_api_key" not in req.settings:
-		raise HTTPException(400, "GOOGLE_MAPS_API_KEY environment variable is required")
+		raise HTTPException(500, "GOOGLE_MAPS_API_KEY environment variable is required")
 	thunderforest_api_key = os.getenv("THUNDERFOREST_API_KEY")
 	if thunderforest_api_key:
 		req.settings["thunderforest_api_key"] = thunderforest_api_key
@@ -147,6 +149,24 @@ def plan(req: PlanRequest) -> JSONResponse:
 			)
 		)
 	return JSONResponse({"routes": payload})
+
+
+@app.get("/thunderforest/transport/{z}/{x}/{y}.png")
+async def proxy_thunderforest_trasport(z: int, x: int, y: int):
+	thunderforest_api_key = os.getenv("THUNDERFOREST_API_KEY") or ""
+	if not thunderforest_api_key:
+		raise HTTPException(
+			500, "THUNDERFOREST_API_KEY environment variable is required"
+		)
+	tiles = f"https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey={thunderforest_api_key}"
+	async with aiohttp.ClientSession() as session:
+		async with session.get(tiles) as resp:
+			if resp.status != 200:
+				raise HTTPException(
+					resp.status, "Failed to get tile from Thunderforest"
+				)
+			content = await resp.read()
+			return Response(content=content, media_type="image/png")
 
 
 app.mount(

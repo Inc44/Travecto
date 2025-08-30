@@ -44,6 +44,7 @@ def create_map(
 	marker_coords: List[Tuple[float, float]],
 	names: List[str],
 	thunderforest_api_key: str = "",
+	use_proxy: bool = False,
 ) -> folium.Map:
 	center_lat = sum(coord[0] for coord in marker_coords) / len(marker_coords)
 	center_lng = sum(coord[1] for coord in marker_coords) / len(marker_coords)
@@ -62,11 +63,15 @@ def create_map(
 		show=False,
 	).add_to(folium_map)
 	if thunderforest_api_key:
-		folium.TileLayer(
-			tiles=(
+		if use_proxy:
+			tiles = "/thunderforest/transport/{z}/{x}/{y}.png"
+		else:
+			tiles = (
 				"https://tile.thunderforest.com/transport/"
 				"{z}/{x}/{y}.png?apikey=" + thunderforest_api_key
-			),
+			)
+		folium.TileLayer(
+			tiles=tiles,
 			name="Transport",
 			attr="Thunderforest",
 			show=False,
@@ -153,6 +158,7 @@ def visualize_route(
 				marker_coords,
 				places,
 				settings.get("thunderforest_api_key", ""),
+				use_proxy=False,
 			)
 			folium_map.save(output_path)
 		webbrowser.open(output_path.as_uri())

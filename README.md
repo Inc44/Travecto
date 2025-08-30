@@ -183,7 +183,9 @@ Planning efficient tourist routes in large cities like Paris requires solving co
 
 ## 🐛 Bugs
 
-Not yet found.
+As the demo website doesn't require authentication to make /plan API requests, there is no way to make it for internal use only, so the demo is rate-limited to prevent abuse. More details:
+
+- [How to block api requests from web browsers and tools like cURL?](https://stackoverflow.com/questions/44609131/how-to-block-api-requests-from-web-browsers-and-tools-like-curl)
 
 ## ⛔ Known Limitations
 
@@ -205,6 +207,8 @@ Not yet found.
 - [ ] **Multi-Objective Optimization**: Enable optimization for factors beyond distance, such as opening hours, crowd levels, and personal preferences.
 - [ ] **[routing_parameters_pb.jl](https://github.com/google/or-tools/blob/stable/ortools/julia/ORToolsGenerated.jl/src/genproto/operations_research/routing_parameters_pb.jl)**: Explore the configuration available for `search_params`.
 - [ ] **More Maps**: Topology, cycling, and dark mode versions.
+- [ ] **More geocoding and directions providers**: Mapbox, HERE, TomTom, Bing Maps, OpenCage. More details:
+	- [Guide to Geocoding API Pricing](https://mapscaping.com/guide-to-geocoding-api-pricing)
 - [ ] **Security, Abuse Prevention, Quota Handling**.
 - [ ] **Hide Internal Functions**: `__all__` or underscore prefix.
 - [ ] **Tests**.
